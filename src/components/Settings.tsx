@@ -463,10 +463,11 @@ export const WorldInfoRecommenderSettings: FC = () => {
               <span>{t.languageToggleButtonLabel(currentLanguageLabel)}</span>
             </STButton>
             <STButton
-              className="fa-solid fa-undo"
               title={t.restoreMainContextTooltip}
               onClick={handleRestoreMainContextDefault}
-            />
+            >
+              <i className="fa-solid fa-undo" />
+            </STButton>
           </div>
         </div>
         <STPresetSelect
@@ -497,10 +498,11 @@ export const WorldInfoRecommenderSettings: FC = () => {
           <span>{t.promptTemplatesTitle}</span>
           {isDefaultSystemPromptSelected && (
             <STButton
-              className="fa-solid fa-undo"
               title={t.restorePromptTooltip}
               onClick={handleRestoreSystemPromptDefault}
-            />
+            >
+              <i className="fa-solid fa-undo" />
+            </STButton>
           )}
         </div>
         <STPresetSelect

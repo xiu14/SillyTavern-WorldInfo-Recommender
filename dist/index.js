@@ -19009,9 +19009,9 @@ const LS = SillyTavern.getContext(), Jn = ({
           /* @__PURE__ */ N.jsx(
             je,
             {
-              className: "fa-solid fa-undo",
               title: a.restoreMainContextTooltip,
-              onClick: A
+              onClick: A,
+              children: /* @__PURE__ */ N.jsx("i", { className: "fa-solid fa-undo" })
             }
           )
         ] })
@@ -19047,9 +19047,9 @@ const LS = SillyTavern.getContext(), Jn = ({
         j && /* @__PURE__ */ N.jsx(
           je,
           {
-            className: "fa-solid fa-undo",
             title: a.restorePromptTooltip,
-            onClick: S
+            onClick: S,
+            children: /* @__PURE__ */ N.jsx("i", { className: "fa-solid fa-undo" })
           }
         )
       ] }),
