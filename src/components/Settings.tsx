@@ -459,7 +459,7 @@ export const WorldInfoRecommenderSettings: FC = () => {
           <span>{t.mainContextTitle}</span>
           <div className="title_restorable_actions">
             <STButton className="language-toggle" title={t.languageToggleButtonTooltip} onClick={handleLanguageToggle}>
-              <i className="fa-solid fa-fw fa-globe" />
+              <span style={{ fontSize: '1.1em', marginRight: '6px' }}>🌐</span>
               <span>{t.languageToggleButtonLabel(currentLanguageLabel)}</span>
             </STButton>
             <STButton

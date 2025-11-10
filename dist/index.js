@@ -19003,7 +19003,7 @@ const LS = SillyTavern.getContext(), Jn = ({
         /* @__PURE__ */ N.jsx("span", { children: a.mainContextTitle }),
         /* @__PURE__ */ N.jsxs("div", { className: "title_restorable_actions", children: [
           /* @__PURE__ */ N.jsxs(je, { className: "language-toggle", title: a.languageToggleButtonTooltip, onClick: _, children: [
-            /* @__PURE__ */ N.jsx("i", { className: "fa-solid fa-fw fa-globe" }),
+            /* @__PURE__ */ N.jsx("span", { style: { fontSize: "1.1em", marginRight: "6px" }, children: "🌐" }),
             /* @__PURE__ */ N.jsx("span", { children: a.languageToggleButtonLabel(u) })
           ] }),
           /* @__PURE__ */ N.jsx(
@@ -26760,7 +26760,7 @@ const In = SillyTavern.getContext(), Ck = "en", F0 = {
             onClick: Z,
             title: a.languageButtonTooltip,
             children: [
-              /* @__PURE__ */ N.jsx("i", { className: "fa-solid fa-fw fa-globe" }),
+              /* @__PURE__ */ N.jsx("span", { style: { fontSize: "1.1em", marginRight: "6px" }, children: "🌐" }),
               /* @__PURE__ */ N.jsx("span", { children: a.languageButtonLabel(c) })
             ]
           }
