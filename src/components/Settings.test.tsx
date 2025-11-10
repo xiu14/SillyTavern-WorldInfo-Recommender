@@ -152,7 +152,7 @@ vi.mock('../settings.js', () => {
 
 import { WorldInfoRecommenderSettings } from './Settings.js';
 
-describe('WorldInfoRecommenderSettings - language toggle', () => {
+describe('WorldInfoRecommenderSettings - language select', () => {
   beforeEach(() => {
     resetSettingsState();
     echoMock.mockClear();
@@ -164,21 +164,22 @@ describe('WorldInfoRecommenderSettings - language toggle', () => {
     cleanup();
   });
 
-  it('renders the language toggle button with the current language', () => {
+  it('renders the language select dropdown with the current language', () => {
     render(<WorldInfoRecommenderSettings />);
 
-    expect(screen.getByRole('button', { name: /Language: English/ })).toBeInTheDocument();
+    const select = screen.getByRole('combobox', { name: /Language/ });
+    expect(select).toBeInTheDocument();
+    expect(select).toHaveValue('en');
   });
 
-  it('switches to the next supported language when clicking the toggle', () => {
+  it('switches language when selecting from dropdown', () => {
     render(<WorldInfoRecommenderSettings />);
 
-    const toggleButton = screen.getByRole('button', { name: /Language: English/ });
-    fireEvent.click(toggleButton);
+    const select = screen.getByRole('combobox', { name: /Language/ });
+    fireEvent.change(select, { target: { value: 'zh-CN' } });
 
     expect(getSettingsState().language).toBe('zh-CN');
     expect(saveSettingsMock).toHaveBeenCalled();
     expect(echoMock).toHaveBeenCalledWith('info', '界面语言已切换为 中文。');
-    expect(screen.getByRole('button', { name: /界面语言：中文/ })).toBeInTheDocument();
   });
 });

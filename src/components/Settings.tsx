@@ -137,7 +137,6 @@ export const WorldInfoRecommenderSettings: FC = () => {
   
   const selectedLanguage = isSupportedLanguage(settings.language) ? settings.language : DEFAULT_LANGUAGE;
   const t = UI_STRINGS[selectedLanguage] ?? UI_STRINGS[DEFAULT_LANGUAGE];
-  const currentLanguageLabel = LANGUAGE_LABELS[selectedLanguage];
   const [selectedSystemPrompt, setSelectedSystemPrompt] = useState<string>(SYSTEM_PROMPT_KEYS[0]);
 
   // Centralized function to update state and persist settings
@@ -162,23 +161,6 @@ export const WorldInfoRecommenderSettings: FC = () => {
     const languageLabel = LANGUAGE_LABELS[newValue];
     const languageStrings = UI_STRINGS[newValue] ?? t;
     st_echo('info', languageStrings.languageSwitched(languageLabel));
-  };
-
-  const handleLanguageToggle = () => {
-    const currentIndex = SUPPORTED_LANGUAGES.indexOf(selectedLanguage);
-    const nextLanguage = SUPPORTED_LANGUAGES[(currentIndex + 1) % SUPPORTED_LANGUAGES.length];
-    if (nextLanguage === selectedLanguage) {
-      const currentStrings = UI_STRINGS[selectedLanguage] ?? t;
-      st_echo('info', currentStrings.languageSwitched(currentLanguageLabel));
-      return;
-    }
-
-    updateAndRefresh((s) => {
-      s.language = nextLanguage;
-    });
-    const nextLanguageLabel = LANGUAGE_LABELS[nextLanguage];
-    const nextStrings = UI_STRINGS[nextLanguage] ?? t;
-    st_echo('info', nextStrings.languageSwitched(nextLanguageLabel));
   };
 
   // --- Derived Data for UI (Memoized for performance) ---
@@ -470,10 +452,6 @@ export const WorldInfoRecommenderSettings: FC = () => {
         <div className="title_restorable">
           <span>{t.mainContextTitle}</span>
           <div className="title_restorable_actions">
-            <STButton className="language-toggle" title={t.languageToggleButtonTooltip} onClick={handleLanguageToggle}>
-              <span style={{ fontSize: '1.1em', marginRight: '6px' }}>🌐</span>
-              <span>{t.languageToggleButtonLabel(currentLanguageLabel)}</span>
-            </STButton>
             <STButton
               title={t.restoreMainContextTooltip}
               onClick={handleRestoreMainContextDefault}

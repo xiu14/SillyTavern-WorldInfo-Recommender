@@ -382,26 +382,76 @@ dialog:has(.select-entries-popup) {
     .settings-language {
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 8px;
+        background: linear-gradient(135deg, rgba(27, 27, 27, 0.4), rgba(47, 47, 47, 0.4));
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 
         label {
             font-weight: 600;
             color: var(--SmartThemeEmColor);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1em;
+
+            &::before {
+                content: '🌐';
+                font-size: 1.2em;
+            }
         }
 
         &__select {
-            background-color: var(--SmartThemeInputColor);
-            color: var(--SmartThemeInputTextColor);
-            border: 1px solid var(--SmartThemeBorderColor);
+            background: linear-gradient(135deg, #1b1b1b, #2f2f2f);
+            color: #f5f5f5;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 6px;
-            padding: 6px 10px;
+            padding: 8px 12px;
             font-size: 0.95em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+            &:hover {
+                background: linear-gradient(135deg, #252525, #3a3a3a);
+                border-color: rgba(255, 255, 255, 0.18);
+                box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+            }
+
+            &:focus {
+                outline: none;
+                border-color: rgba(255, 255, 255, 0.25);
+                box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+            }
+
+            option {
+                background-color: #2f2f2f;
+                color: #f5f5f5;
+                padding: 8px;
+            }
         }
 
         &__description {
             margin: 0;
             font-size: 0.85em;
-            color: var(--SmartThemeEmColor);
+            color: rgba(245, 245, 245, 0.7);
+            font-style: italic;
+        }
+
+        // 移动端适配
+        @media (max-width: 600px) {
+            padding: 10px;
+            
+            label {
+                font-size: 0.95em;
+            }
+
+            &__select {
+                padding: 10px;
+                font-size: 1em;
+            }
         }
     }
 
