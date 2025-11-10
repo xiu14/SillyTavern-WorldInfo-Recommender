@@ -180,6 +180,6 @@ describe('WorldInfoRecommenderSettings - language select', () => {
 
     expect(getSettingsState().language).toBe('zh-CN');
     expect(saveSettingsMock).toHaveBeenCalled();
-    expect(echoMock).toHaveBeenCalledWith('info', '界面语言已切换为 中文。');
+    expect(echoMock).toHaveBeenCalledWith('info', '已切换为 中文');
   });
 });
