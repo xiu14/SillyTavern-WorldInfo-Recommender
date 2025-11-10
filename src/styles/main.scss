@@ -292,6 +292,160 @@ dialog:has(.select-entries-popup) {
     }
 }
 
+#worldInfoRecommenderPopup .menu_button,
+#worldInfoRecommenderPopup .danger_button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+#worldInfoRecommenderPopup .menu_button:hover,
+#worldInfoRecommenderPopup .danger_button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.22);
+}
+
+.world-info-recommender-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+
+    .title_restorable {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+
+        span {
+            font-weight: 600;
+            color: var(--SmartThemeEmColor);
+        }
+
+        button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+        }
+    }
+
+    .settings-language {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        label {
+            font-weight: 600;
+            color: var(--SmartThemeEmColor);
+        }
+
+        &__select {
+            background-color: var(--SmartThemeInputColor);
+            color: var(--SmartThemeInputTextColor);
+            border: 1px solid var(--SmartThemeBorderColor);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 0.95em;
+        }
+
+        &__description {
+            margin: 0;
+            font-size: 0.85em;
+            color: var(--SmartThemeEmColor);
+        }
+    }
+
+    .danger_button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .danger_button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.22);
+    }
+}
+
+@media (max-width: 600px) {
+    .world-info-recommender-settings .title_restorable {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .world-info-recommender-settings .title_restorable button,
+    .world-info-recommender-settings .danger_button {
+        width: 100%;
+    }
+
+    .world-info-recommender-settings .settings-language__select {
+        width: 100%;
+    }
+
+    #worldInfoRecommenderPopup .actions,
+    #worldInfoRecommenderPopup .popup_header_buttons {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    #worldInfoRecommenderPopup .actions .menu_button,
+    #worldInfoRecommenderPopup .popup_header_buttons .menu_button,
+    #worldInfoRecommenderPopup .popup_header_buttons .danger_button {
+        width: 100%;
+    }
+
+    #worldInfoRecommenderPopup .entry .menu {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    #worldInfoRecommenderPopup .entry .menu .menu_button {
+        width: 100%;
+    }
+
+    #worldInfoRecommenderPopup .entry-selection-control {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #worldInfoRecommenderPopup .entry-selection-control .menu_button {
+        width: 100%;
+    }
+
+    .select-entries-popup .controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .select-entries-popup .controls .menu_button {
+        width: 100%;
+    }
+}
+
 .select-entries-popup {
     display: flex;
     flex-direction: column;

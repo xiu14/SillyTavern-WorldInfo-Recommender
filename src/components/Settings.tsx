@@ -18,10 +18,91 @@ import {
   MainContextTemplatePreset,
   MessageRole,
   PromptSetting,
+  SUPPORTED_LANGUAGES,
+  SupportedLanguage,
   settingsManager,
   SYSTEM_PROMPT_KEYS,
 } from '../settings.js';
 import { useForceUpdate } from '../hooks/useForceUpdate.js';
+
+type UILabels = {
+  languageLabel: string;
+  languageDescription: string;
+  mainContextTitle: string;
+  restoreMainContextTooltip: string;
+  restoreMainContextConfirmTitle: string;
+  restoreMainContextConfirmMessage: string;
+  mainContextTemplateLabel: string;
+  promptTemplatesTitle: string;
+  restorePromptTooltip: string;
+  promptLabel: string;
+  restorePromptConfirmTitle: string;
+  restorePromptConfirmMessage: (promptLabel: string) => string;
+  promptEditorPlaceholder: string;
+  resetEverythingButton: string;
+  resetEverythingConfirmTitle: string;
+  resetEverythingConfirmMessage: string;
+  resetEverythingSuccess: string;
+  noPromptSelectedWarning: string;
+};
+
+const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
+
+const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
+  en: 'English',
+  'zh-CN': '中文',
+};
+
+const LANGUAGE_OPTIONS: Array<{ value: SupportedLanguage; label: string }> = SUPPORTED_LANGUAGES.map((lang) => ({
+  value: lang,
+  label: LANGUAGE_LABELS[lang],
+}));
+
+const UI_STRINGS: Record<SupportedLanguage, UILabels> = {
+  en: {
+    languageLabel: 'Language',
+    languageDescription: 'Choose the language for the extension interface.',
+    mainContextTitle: 'Main Context Template',
+    restoreMainContextTooltip: 'Restore main context template to default',
+    restoreMainContextConfirmTitle: 'Restore default',
+    restoreMainContextConfirmMessage: 'Are you sure?',
+    mainContextTemplateLabel: 'Template',
+    promptTemplatesTitle: 'Prompt Templates',
+    restorePromptTooltip: 'Restore selected prompt to default',
+    promptLabel: 'Prompt',
+    restorePromptConfirmTitle: 'Restore default',
+    restorePromptConfirmMessage: (promptLabel: string) => `Restore default for "${promptLabel}"?`,
+    promptEditorPlaceholder: 'Edit the selected system prompt template here...',
+    resetEverythingButton: 'I messed up, reset everything',
+    resetEverythingConfirmTitle: 'Reset Everything',
+    resetEverythingConfirmMessage: 'Are you sure? This cannot be undone.',
+    resetEverythingSuccess: 'Settings reset. The UI has been updated.',
+    noPromptSelectedWarning: 'No prompt selected.',
+  },
+  'zh-CN': {
+    languageLabel: '界面语言',
+    languageDescription: '选择扩展界面显示的语言。',
+    mainContextTitle: '主要上下文模板',
+    restoreMainContextTooltip: '恢复主要上下文模板为默认值',
+    restoreMainContextConfirmTitle: '恢复默认',
+    restoreMainContextConfirmMessage: '确定要恢复默认设置吗？',
+    mainContextTemplateLabel: '模板',
+    promptTemplatesTitle: '提示词模板',
+    restorePromptTooltip: '将所选提示词恢复为默认值',
+    promptLabel: '提示词',
+    restorePromptConfirmTitle: '恢复默认',
+    restorePromptConfirmMessage: (promptLabel: string) => `确定要恢复“${promptLabel}”为默认值吗？`,
+    promptEditorPlaceholder: '在此编辑所选系统提示词模板...',
+    resetEverythingButton: '我弄错了，全部重置',
+    resetEverythingConfirmTitle: '全部重置',
+    resetEverythingConfirmMessage: '确定要重置所有设置吗？此操作无法撤销。',
+    resetEverythingSuccess: '设置已重置，界面已更新。',
+    noPromptSelectedWarning: '未选择任何提示词。',
+  },
+};
+
+const isSupportedLanguage = (value: string): value is SupportedLanguage =>
+  SUPPORTED_LANGUAGES.includes(value as SupportedLanguage);
 
 const globalContext = SillyTavern.getContext();
 
@@ -33,6 +114,8 @@ export const WorldInfoRecommenderSettings: FC = () => {
   // --- State Management ---
   const forceUpdate = useForceUpdate();
   const settings = settingsManager.getSettings();
+  const selectedLanguage = isSupportedLanguage(settings.language) ? settings.language : DEFAULT_LANGUAGE;
+  const t = UI_STRINGS[selectedLanguage] ?? UI_STRINGS[DEFAULT_LANGUAGE];
   const [selectedSystemPrompt, setSelectedSystemPrompt] = useState<string>(SYSTEM_PROMPT_KEYS[0]);
 
   // Centralized function to update state and persist settings
@@ -45,6 +128,16 @@ export const WorldInfoRecommenderSettings: FC = () => {
     },
     [forceUpdate],
   );
+
+  const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newValue = event.target.value;
+    if (!isSupportedLanguage(newValue) || newValue === settings.language) {
+      return;
+    }
+    updateAndRefresh((s) => {
+      s.language = newValue;
+    });
+  };
 
   // --- Derived Data for UI (Memoized for performance) ---
   const mainContextPresetItems = useMemo(
@@ -130,7 +223,10 @@ export const WorldInfoRecommenderSettings: FC = () => {
   };
 
   const handleRestoreMainContextDefault = async () => {
-    const confirm = await globalContext.Popup.show.confirm('Restore default', 'Are you sure?');
+    const confirm = await globalContext.Popup.show.confirm(
+      t.restoreMainContextConfirmTitle,
+      t.restoreMainContextConfirmMessage,
+    );
     if (!confirm) return;
 
     updateAndRefresh((s) => {
@@ -271,9 +367,12 @@ export const WorldInfoRecommenderSettings: FC = () => {
 
   const handleRestoreSystemPromptDefault = async () => {
     const prompt = settings.prompts[selectedSystemPrompt as keyof typeof settings.prompts];
-    if (!prompt) return st_echo('warning', 'No prompt selected.');
+    if (!prompt) return st_echo('warning', t.noPromptSelectedWarning);
 
-    const confirm = await globalContext.Popup.show.confirm('Restore Default', `Restore default for "${prompt.label}"?`);
+    const confirm = await globalContext.Popup.show.confirm(
+      t.restorePromptConfirmTitle,
+      t.restorePromptConfirmMessage(prompt.label),
+    );
     if (confirm) {
       updateAndRefresh((s) => {
         // Create a new prompts object with the restored content.
@@ -290,12 +389,15 @@ export const WorldInfoRecommenderSettings: FC = () => {
 
   // --- Reset Handler ---
   const handleResetEverything = async () => {
-    const confirm = await globalContext.Popup.show.confirm('Reset Everything', 'Are you sure? This cannot be undone.');
+    const confirm = await globalContext.Popup.show.confirm(
+      t.resetEverythingConfirmTitle,
+      t.resetEverythingConfirmMessage,
+    );
     if (confirm) {
       settingsManager.resetSettings(); // This saves automatically
       // forceUpdate is sufficient here because the next render will get a completely new settings object.
       forceUpdate();
-      st_echo('success', 'Settings reset. The UI has been updated.');
+      st_echo('success', t.resetEverythingSuccess);
     }
   };
 
@@ -303,81 +405,98 @@ export const WorldInfoRecommenderSettings: FC = () => {
   // @ts-ignore
   const isDefaultSystemPromptSelected = SYSTEM_PROMPT_KEYS.includes(selectedSystemPrompt);
 
-  return (
-    <div className="world-info-recommender-settings">
-      <div style={{ marginTop: '10px' }}>
-        <div className="title_restorable">
-          <span>Main Context Template</span>
-          <STButton
-            className="fa-solid fa-undo"
-            title="Restore main context template to default"
-            onClick={handleRestoreMainContextDefault}
-          />
+    return (
+      <div className="world-info-recommender-settings">
+        <div className="settings-language" style={{ marginTop: '10px' }}>
+          <label htmlFor="world-info-recommender-language-select">{t.languageLabel}</label>
+          <select
+            id="world-info-recommender-language-select"
+            className="settings-language__select"
+            value={selectedLanguage}
+            onChange={handleLanguageChange}
+          >
+            {LANGUAGE_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+          <p className="settings-language__description">{t.languageDescription}</p>
         </div>
-        <STPresetSelect
-          label="Template"
-          items={mainContextPresetItems}
-          value={settings.mainContextTemplatePreset}
-          readOnlyValues={['default']}
-          onChange={handleMainContextPresetChange}
-          onItemsChange={handleMainContextPresetsChange}
-          enableCreate
-          enableRename
-          enableDelete
-        />
-        <div style={{ marginTop: '5px' }}>
-          <STSortableList
-            items={mainContextListItems}
-            onItemsChange={handleMainContextListChange}
-            showSelectInput
-            showToggleButton
-          />
-        </div>
-      </div>
 
-      <hr style={{ margin: '10px 0' }} />
-
-      <div style={{ marginTop: '10px' }}>
-        <div className="title_restorable">
-          <span>Prompt Templates</span>
-          {isDefaultSystemPromptSelected && (
+        <div style={{ marginTop: '10px' }}>
+          <div className="title_restorable">
+            <span>{t.mainContextTitle}</span>
             <STButton
               className="fa-solid fa-undo"
-              title="Restore selected prompt to default"
-              onClick={handleRestoreSystemPromptDefault}
+              title={t.restoreMainContextTooltip}
+              onClick={handleRestoreMainContextDefault}
             />
-          )}
+          </div>
+          <STPresetSelect
+            label={t.mainContextTemplateLabel}
+            items={mainContextPresetItems}
+            value={settings.mainContextTemplatePreset}
+            readOnlyValues={['default']}
+            onChange={handleMainContextPresetChange}
+            onItemsChange={handleMainContextPresetsChange}
+            enableCreate
+            enableRename
+            enableDelete
+          />
+          <div style={{ marginTop: '5px' }}>
+            <STSortableList
+              items={mainContextListItems}
+              onItemsChange={handleMainContextListChange}
+              showSelectInput
+              showToggleButton
+            />
+          </div>
         </div>
-        <STPresetSelect
-          label="Prompt"
-          items={systemPromptItems}
-          value={selectedSystemPrompt}
-          readOnlyValues={SYSTEM_PROMPT_KEYS as string[]}
-          onChange={(newValue) => setSelectedSystemPrompt(newValue ?? '')}
-          onItemsChange={handleSystemPromptsChange}
-          enableCreate
-          enableRename
-          enableDelete
-          onCreate={handleSystemPromptCreate}
-          onRename={handleSystemPromptRename}
-        />
-        <STTextarea
-          value={selectedPromptContent}
-          onChange={handleSystemPromptContentChange}
-          placeholder="Edit the selected system prompt template here..."
-          rows={6}
-          style={{ marginTop: '5px', width: '100%' }}
-        />
-      </div>
 
-      <hr style={{ margin: '15px 0' }} />
+        <hr style={{ margin: '10px 0' }} />
 
-      <div style={{ textAlign: 'center', marginTop: '15px' }}>
-        <STButton className="danger_button" style={{ width: 'auto' }} onClick={handleResetEverything}>
-          <i style={{ marginRight: '10px' }} className="fa-solid fa-triangle-exclamation" />I messed up, reset
-          everything
-        </STButton>
+        <div style={{ marginTop: '10px' }}>
+          <div className="title_restorable">
+            <span>{t.promptTemplatesTitle}</span>
+            {isDefaultSystemPromptSelected && (
+              <STButton
+                className="fa-solid fa-undo"
+                title={t.restorePromptTooltip}
+                onClick={handleRestoreSystemPromptDefault}
+              />
+            )}
+          </div>
+          <STPresetSelect
+            label={t.promptLabel}
+            items={systemPromptItems}
+            value={selectedSystemPrompt}
+            readOnlyValues={SYSTEM_PROMPT_KEYS as string[]}
+            onChange={(newValue) => setSelectedSystemPrompt(newValue ?? '')}
+            onItemsChange={handleSystemPromptsChange}
+            enableCreate
+            enableRename
+            enableDelete
+            onCreate={handleSystemPromptCreate}
+            onRename={handleSystemPromptRename}
+          />
+          <STTextarea
+            value={selectedPromptContent}
+            onChange={handleSystemPromptContentChange}
+            placeholder={t.promptEditorPlaceholder}
+            rows={6}
+            style={{ marginTop: '5px', width: '100%' }}
+          />
+        </div>
+
+        <hr style={{ margin: '15px 0' }} />
+
+        <div style={{ textAlign: 'center', marginTop: '15px' }}>
+          <STButton className="danger_button" style={{ width: 'auto' }} onClick={handleResetEverything}>
+            <i style={{ marginRight: '10px' }} className="fa-solid fa-triangle-exclamation" />
+            <span>{t.resetEverythingButton}</span>
+          </STButton>
+        </div>
       </div>
-    </div>
-  );
+    );
 };

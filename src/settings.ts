@@ -17,8 +17,8 @@ import { globalContext } from './generate.js';
 import { st_echo } from 'sillytavern-utils-lib/config';
 
 export const extensionName = 'SillyTavern-WorldInfo-Recommender';
-export const VERSION = '0.2.0';
-export const FORMAT_VERSION = 'F_1.4';
+export const VERSION = '0.3.0';
+export const FORMAT_VERSION = 'F_1.5';
 
 export const KEYS = {
   EXTENSION: 'worldInfoRecommender',
@@ -64,6 +64,9 @@ export interface MainContextTemplatePreset {
   prompts: MainContextPromptBlock[];
 }
 
+export type SupportedLanguage = 'en' | 'zh-CN';
+export const SUPPORTED_LANGUAGES: SupportedLanguage[] = ['en', 'zh-CN'];
+
 export interface ExtensionSettings {
   version: string;
   formatVersion: string;
@@ -73,6 +76,7 @@ export interface ExtensionSettings {
   maxResponseToken: number;
   contextToSend: ContextToSend;
   defaultPromptEngineeringMode: PromptEngineeringMode;
+  language: SupportedLanguage;
   prompts: {
     stDescription: PromptSetting;
     currentLorebooks: PromptSetting;
@@ -156,6 +160,7 @@ export const DEFAULT_SETTINGS: ExtensionSettings = {
     suggestedEntries: true,
   },
   defaultPromptEngineeringMode: 'native',
+  language: 'en',
   prompts: {
     stDescription: {
       label: 'SillyTavern Description',
@@ -419,6 +424,18 @@ export async function initializeSettings(): Promise<void> {
               };
 
               return migrated;
+            },
+          },
+          {
+            from: 'F_1.4',
+            to: 'F_1.5',
+            action(previous: ExtensionSettings): ExtensionSettings {
+              const migrated = { ...previous };
+              migrated.formatVersion = 'F_1.5';
+              if (!('language' in migrated) || !migrated.language) {
+                (migrated as ExtensionSettings).language = 'en';
+              }
+              return migrated as ExtensionSettings;
             },
           },
         ],
