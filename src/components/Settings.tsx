@@ -123,6 +123,18 @@ export const WorldInfoRecommenderSettings: FC = () => {
   // --- State Management ---
   const forceUpdate = useForceUpdate();
   const settings = settingsManager.getSettings();
+  
+  // Debug logging
+  console.log('[WorldInfoRecommender] Settings loaded:', {
+    hasSettings: !!settings,
+    language: settings?.language,
+    hasPrompts: !!settings?.prompts,
+  });
+  
+  if (!settings) {
+    return <div style={{ padding: '20px', color: 'red' }}>Error: Settings not loaded</div>;
+  }
+  
   const selectedLanguage = isSupportedLanguage(settings.language) ? settings.language : DEFAULT_LANGUAGE;
   const t = UI_STRINGS[selectedLanguage] ?? UI_STRINGS[DEFAULT_LANGUAGE];
   const currentLanguageLabel = LANGUAGE_LABELS[selectedLanguage];

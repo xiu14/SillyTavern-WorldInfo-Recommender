@@ -18798,7 +18798,14 @@ const LS = SillyTavern.getContext(), Jn = ({
     noPromptSelectedWarning: "未选择任何提示词。"
   }
 }, _0 = (n) => _r.includes(n), gf = SillyTavern.getContext(), IS = () => {
-  const n = Hy(), r = Bt.getSettings(), s = _0(r.language) ? r.language : y0, a = Zs[s] ?? Zs[y0], u = fl[s], [c, f] = re.useState(Wu[0]), m = re.useCallback(
+  const n = Hy(), r = Bt.getSettings();
+  if (console.log("[WorldInfoRecommender] Settings loaded:", {
+    hasSettings: !!r,
+    language: r?.language,
+    hasPrompts: !!r?.prompts
+  }), !r)
+    return /* @__PURE__ */ N.jsx("div", { style: { padding: "20px", color: "red" }, children: "Error: Settings not loaded" });
+  const s = _0(r.language) ? r.language : y0, a = Zs[s] ?? Zs[y0], u = fl[s], [c, f] = re.useState(Wu[0]), m = re.useCallback(
     (L) => {
       const O = Bt.getSettings();
       L(O), Bt.saveSettings(), n();
