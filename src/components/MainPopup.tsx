@@ -945,7 +945,7 @@ export const MainPopup: FC = () => {
               onClick={handleLanguageToggle}
               title={labels.languageButtonTooltip}
             >
-              <i className="fa-solid fa-language" />
+              <i className="fa-solid fa-fw fa-globe" />
               <span>{labels.languageButtonLabel(currentLanguageLabel)}</span>
             </STButton>
           </div>
