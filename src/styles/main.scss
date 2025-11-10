@@ -311,7 +311,8 @@ dialog:has(.select-entries-popup) {
     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.22);
 }
 
-#worldInfoRecommenderPopup .language-toggle {
+#worldInfoRecommenderPopup .language-toggle,
+.world-info-recommender-settings .language-toggle {
     background: linear-gradient(135deg, #1b1b1b, #2f2f2f);
     color: #f5f5f5;
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -319,16 +320,19 @@ dialog:has(.select-entries-popup) {
     text-transform: none;
 }
 
-#worldInfoRecommenderPopup .language-toggle i {
+#worldInfoRecommenderPopup .language-toggle i,
+.world-info-recommender-settings .language-toggle i {
     color: inherit;
 }
 
-#worldInfoRecommenderPopup .language-toggle:hover {
+#worldInfoRecommenderPopup .language-toggle:hover,
+.world-info-recommender-settings .language-toggle:hover {
     background: linear-gradient(135deg, #252525, #3a3a3a);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.28);
 }
 
-#worldInfoRecommenderPopup .language-toggle:active {
+#worldInfoRecommenderPopup .language-toggle:active,
+.world-info-recommender-settings .language-toggle:active {
     background: linear-gradient(135deg, #121212, #292929);
     transform: translateY(0);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
@@ -365,6 +369,14 @@ dialog:has(.select-entries-popup) {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
         }
+    }
+
+    .title_restorable_actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     .settings-language {
@@ -415,6 +427,11 @@ dialog:has(.select-entries-popup) {
     .world-info-recommender-settings .title_restorable {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .world-info-recommender-settings .title_restorable_actions {
+        width: 100%;
+        justify-content: stretch;
     }
 
     .world-info-recommender-settings .title_restorable button,

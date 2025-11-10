@@ -28,6 +28,9 @@ import { useForceUpdate } from '../hooks/useForceUpdate.js';
 type UILabels = {
   languageLabel: string;
   languageDescription: string;
+  languageToggleButtonLabel: (languageLabel: string) => string;
+  languageToggleButtonTooltip: string;
+  languageSwitched: (languageLabel: string) => string;
   mainContextTitle: string;
   restoreMainContextTooltip: string;
   restoreMainContextConfirmTitle: string;
@@ -62,6 +65,9 @@ const UI_STRINGS: Record<SupportedLanguage, UILabels> = {
   en: {
     languageLabel: 'Language',
     languageDescription: 'Choose the language for the extension interface.',
+    languageToggleButtonLabel: (languageLabel: string) => `Language: ${languageLabel}`,
+    languageToggleButtonTooltip: 'Switch interface language',
+    languageSwitched: (languageLabel: string) => `Language switched to ${languageLabel}.`,
     mainContextTitle: 'Main Context Template',
     restoreMainContextTooltip: 'Restore main context template to default',
     restoreMainContextConfirmTitle: 'Restore default',
@@ -82,6 +88,9 @@ const UI_STRINGS: Record<SupportedLanguage, UILabels> = {
   'zh-CN': {
     languageLabel: '界面语言',
     languageDescription: '选择扩展界面显示的语言。',
+    languageToggleButtonLabel: (languageLabel: string) => `界面语言：${languageLabel}`,
+    languageToggleButtonTooltip: '切换界面语言',
+    languageSwitched: (languageLabel: string) => `界面语言已切换为 ${languageLabel}。`,
     mainContextTitle: '主要上下文模板',
     restoreMainContextTooltip: '恢复主要上下文模板为默认值',
     restoreMainContextConfirmTitle: '恢复默认',
@@ -116,6 +125,7 @@ export const WorldInfoRecommenderSettings: FC = () => {
   const settings = settingsManager.getSettings();
   const selectedLanguage = isSupportedLanguage(settings.language) ? settings.language : DEFAULT_LANGUAGE;
   const t = UI_STRINGS[selectedLanguage] ?? UI_STRINGS[DEFAULT_LANGUAGE];
+  const currentLanguageLabel = LANGUAGE_LABELS[selectedLanguage];
   const [selectedSystemPrompt, setSelectedSystemPrompt] = useState<string>(SYSTEM_PROMPT_KEYS[0]);
 
   // Centralized function to update state and persist settings
@@ -137,6 +147,26 @@ export const WorldInfoRecommenderSettings: FC = () => {
     updateAndRefresh((s) => {
       s.language = newValue;
     });
+    const languageLabel = LANGUAGE_LABELS[newValue];
+    const languageStrings = UI_STRINGS[newValue] ?? t;
+    st_echo('info', languageStrings.languageSwitched(languageLabel));
+  };
+
+  const handleLanguageToggle = () => {
+    const currentIndex = SUPPORTED_LANGUAGES.indexOf(selectedLanguage);
+    const nextLanguage = SUPPORTED_LANGUAGES[(currentIndex + 1) % SUPPORTED_LANGUAGES.length];
+    if (nextLanguage === selectedLanguage) {
+      const currentStrings = UI_STRINGS[selectedLanguage] ?? t;
+      st_echo('info', currentStrings.languageSwitched(currentLanguageLabel));
+      return;
+    }
+
+    updateAndRefresh((s) => {
+      s.language = nextLanguage;
+    });
+    const nextLanguageLabel = LANGUAGE_LABELS[nextLanguage];
+    const nextStrings = UI_STRINGS[nextLanguage] ?? t;
+    st_echo('info', nextStrings.languageSwitched(nextLanguageLabel));
   };
 
   // --- Derived Data for UI (Memoized for performance) ---
@@ -405,98 +435,104 @@ export const WorldInfoRecommenderSettings: FC = () => {
   // @ts-ignore
   const isDefaultSystemPromptSelected = SYSTEM_PROMPT_KEYS.includes(selectedSystemPrompt);
 
-    return (
-      <div className="world-info-recommender-settings">
-        <div className="settings-language" style={{ marginTop: '10px' }}>
-          <label htmlFor="world-info-recommender-language-select">{t.languageLabel}</label>
-          <select
-            id="world-info-recommender-language-select"
-            className="settings-language__select"
-            value={selectedLanguage}
-            onChange={handleLanguageChange}
-          >
-            {LANGUAGE_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-          <p className="settings-language__description">{t.languageDescription}</p>
-        </div>
+  return (
+    <div className="world-info-recommender-settings">
+      <div className="settings-language" style={{ marginTop: '10px' }}>
+        <label htmlFor="world-info-recommender-language-select">{t.languageLabel}</label>
+        <select
+          id="world-info-recommender-language-select"
+          className="settings-language__select"
+          value={selectedLanguage}
+          onChange={handleLanguageChange}
+        >
+          {LANGUAGE_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <p className="settings-language__description">{t.languageDescription}</p>
+      </div>
 
-        <div style={{ marginTop: '10px' }}>
-          <div className="title_restorable">
-            <span>{t.mainContextTitle}</span>
+      <div style={{ marginTop: '10px' }}>
+        <div className="title_restorable">
+          <span>{t.mainContextTitle}</span>
+          <div className="title_restorable_actions">
+            <STButton className="language-toggle" title={t.languageToggleButtonTooltip} onClick={handleLanguageToggle}>
+              <i className="fa-solid fa-language" />
+              <span>{t.languageToggleButtonLabel(currentLanguageLabel)}</span>
+            </STButton>
             <STButton
               className="fa-solid fa-undo"
               title={t.restoreMainContextTooltip}
               onClick={handleRestoreMainContextDefault}
             />
           </div>
-          <STPresetSelect
-            label={t.mainContextTemplateLabel}
-            items={mainContextPresetItems}
-            value={settings.mainContextTemplatePreset}
-            readOnlyValues={['default']}
-            onChange={handleMainContextPresetChange}
-            onItemsChange={handleMainContextPresetsChange}
-            enableCreate
-            enableRename
-            enableDelete
-          />
-          <div style={{ marginTop: '5px' }}>
-            <STSortableList
-              items={mainContextListItems}
-              onItemsChange={handleMainContextListChange}
-              showSelectInput
-              showToggleButton
-            />
-          </div>
         </div>
-
-        <hr style={{ margin: '10px 0' }} />
-
-        <div style={{ marginTop: '10px' }}>
-          <div className="title_restorable">
-            <span>{t.promptTemplatesTitle}</span>
-            {isDefaultSystemPromptSelected && (
-              <STButton
-                className="fa-solid fa-undo"
-                title={t.restorePromptTooltip}
-                onClick={handleRestoreSystemPromptDefault}
-              />
-            )}
-          </div>
-          <STPresetSelect
-            label={t.promptLabel}
-            items={systemPromptItems}
-            value={selectedSystemPrompt}
-            readOnlyValues={SYSTEM_PROMPT_KEYS as string[]}
-            onChange={(newValue) => setSelectedSystemPrompt(newValue ?? '')}
-            onItemsChange={handleSystemPromptsChange}
-            enableCreate
-            enableRename
-            enableDelete
-            onCreate={handleSystemPromptCreate}
-            onRename={handleSystemPromptRename}
+        <STPresetSelect
+          label={t.mainContextTemplateLabel}
+          items={mainContextPresetItems}
+          value={settings.mainContextTemplatePreset}
+          readOnlyValues={['default']}
+          onChange={handleMainContextPresetChange}
+          onItemsChange={handleMainContextPresetsChange}
+          enableCreate
+          enableRename
+          enableDelete
+        />
+        <div style={{ marginTop: '5px' }}>
+          <STSortableList
+            items={mainContextListItems}
+            onItemsChange={handleMainContextListChange}
+            showSelectInput
+            showToggleButton
           />
-          <STTextarea
-            value={selectedPromptContent}
-            onChange={handleSystemPromptContentChange}
-            placeholder={t.promptEditorPlaceholder}
-            rows={6}
-            style={{ marginTop: '5px', width: '100%' }}
-          />
-        </div>
-
-        <hr style={{ margin: '15px 0' }} />
-
-        <div style={{ textAlign: 'center', marginTop: '15px' }}>
-          <STButton className="danger_button" style={{ width: 'auto' }} onClick={handleResetEverything}>
-            <i style={{ marginRight: '10px' }} className="fa-solid fa-triangle-exclamation" />
-            <span>{t.resetEverythingButton}</span>
-          </STButton>
         </div>
       </div>
-    );
+
+      <hr style={{ margin: '10px 0' }} />
+
+      <div style={{ marginTop: '10px' }}>
+        <div className="title_restorable">
+          <span>{t.promptTemplatesTitle}</span>
+          {isDefaultSystemPromptSelected && (
+            <STButton
+              className="fa-solid fa-undo"
+              title={t.restorePromptTooltip}
+              onClick={handleRestoreSystemPromptDefault}
+            />
+          )}
+        </div>
+        <STPresetSelect
+          label={t.promptLabel}
+          items={systemPromptItems}
+          value={selectedSystemPrompt}
+          readOnlyValues={SYSTEM_PROMPT_KEYS as string[]}
+          onChange={(newValue) => setSelectedSystemPrompt(newValue ?? '')}
+          onItemsChange={handleSystemPromptsChange}
+          enableCreate
+          enableRename
+          enableDelete
+          onCreate={handleSystemPromptCreate}
+          onRename={handleSystemPromptRename}
+        />
+        <STTextarea
+          value={selectedPromptContent}
+          onChange={handleSystemPromptContentChange}
+          placeholder={t.promptEditorPlaceholder}
+          rows={6}
+          style={{ marginTop: '5px', width: '100%' }}
+        />
+      </div>
+
+      <hr style={{ margin: '15px 0' }} />
+
+      <div style={{ textAlign: 'center', marginTop: '15px' }}>
+        <STButton className="danger_button" style={{ width: 'auto' }} onClick={handleResetEverything}>
+          <i style={{ marginRight: '10px' }} className="fa-solid fa-triangle-exclamation" />
+          <span>{t.resetEverythingButton}</span>
+        </STButton>
+      </div>
+    </div>
+  );
 };
