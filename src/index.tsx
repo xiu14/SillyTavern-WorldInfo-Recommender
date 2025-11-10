@@ -74,19 +74,41 @@ export async function init() {
 }
 
 function importCheck(): boolean {
-  // (Your import check logic is fine)
-  if (!globalContext.ConnectionManagerRequestService) return false;
-  if (!globalContext.getCharacterCardFields) return false;
-  if (!globalContext.getWorldInfoPrompt) return false;
-  if (!globalContext.reloadWorldInfoEditor) return false;
+  console.log('[WorldInfoRecommender] Checking imports...');
+  if (!globalContext.ConnectionManagerRequestService) {
+    console.error('[WorldInfoRecommender] Missing: ConnectionManagerRequestService');
+    return false;
+  }
+  if (!globalContext.getCharacterCardFields) {
+    console.error('[WorldInfoRecommender] Missing: getCharacterCardFields');
+    return false;
+  }
+  if (!globalContext.getWorldInfoPrompt) {
+    console.error('[WorldInfoRecommender] Missing: getWorldInfoPrompt');
+    return false;
+  }
+  if (!globalContext.reloadWorldInfoEditor) {
+    console.error('[WorldInfoRecommender] Missing: reloadWorldInfoEditor');
+    return false;
+  }
+  console.log('[WorldInfoRecommender] All imports OK');
   return true;
 }
 
+console.log('[WorldInfoRecommender] Extension script loaded, starting initialization...');
+
 if (!importCheck()) {
   st_echo('error', `[${extensionName}] Make sure ST is updated.`);
+  console.error('[WorldInfoRecommender] Import check failed!');
 } else {
+  console.log('[WorldInfoRecommender] Starting settings initialization...');
   initializeSettings().then(() => {
+    console.log('[WorldInfoRecommender] Settings initialized, calling init()...');
     init();
+    console.log('[WorldInfoRecommender] Init complete, initializing commands...');
     initializeCommands();
+    console.log('[WorldInfoRecommender] Fully initialized!');
+  }).catch((error) => {
+    console.error('[WorldInfoRecommender] Initialization failed:', error);
   });
 }
