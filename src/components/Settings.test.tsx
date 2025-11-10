@@ -1,6 +1,5 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
-import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { confirmMock, echoMock, getSettingsState, resetSettingsState, saveSettingsMock } = vi.hoisted(() => {
@@ -62,7 +61,7 @@ const { confirmMock, echoMock, getSettingsState, resetSettingsState, saveSetting
 
   let settingsState = structuredClone(baseSettings);
 
-  globalThis.SillyTavern = {
+  (globalThis as any).SillyTavern = {
     getContext: () => ({
       Popup: {
         show: {
