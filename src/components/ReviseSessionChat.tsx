@@ -302,9 +302,27 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
         const profile = globalContext.extensionSettings.connectionManager?.profiles?.find(
           (p: any) => p.id === session.profileId,
         );
-        const selectedApi = profile?.api ? globalContext.CONNECT_API_MAP[profile.api].selected : undefined;
+        // Try to get API from profile, fall back to current ST API if not set
+        let selectedApi: string | undefined;
+        
+        if (profile?.api && globalContext.CONNECT_API_MAP[profile.api]) {
+          selectedApi = globalContext.CONNECT_API_MAP[profile.api].selected;
+        } else {
+          // Fallback: use SillyTavern's currently active API
+          console.warn(`[WorldInfoRecommender] Profile has no API configured, using ST default.`);
+          
+          // Try to find the active API by checking which one is currently selected
+          for (const [apiKey, apiValue] of Object.entries(globalContext.CONNECT_API_MAP)) {
+            if (apiValue && apiValue.selected) {
+              selectedApi = apiValue.selected;
+              console.log(`[WorldInfoRecommender] Using fallback API: ${apiKey} -> ${selectedApi}`);
+              break;
+            }
+          }
+        }
+        
         if (!selectedApi) {
-          st_echo('warning', 'No API selected for this session.');
+          st_echo('warning', 'No API selected for this session. Please configure Connection Manager.');
           return;
         }
 

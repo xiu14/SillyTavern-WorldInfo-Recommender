@@ -56,9 +56,27 @@ export async function runWorldInfoRecommendation({
     throw new Error(`Connection profile with ID "${profileId}" not found.`);
   }
 
-  const selectedApi = profile.api ? globalContext.CONNECT_API_MAP[profile.api].selected : undefined;
+  // Try to get API from profile, fall back to current ST API if not set
+  let selectedApi: string | undefined;
+  
+  if (profile.api && globalContext.CONNECT_API_MAP[profile.api]) {
+    selectedApi = globalContext.CONNECT_API_MAP[profile.api].selected;
+  } else {
+    // Fallback: use SillyTavern's currently active API
+    console.warn(`[WorldInfoRecommender] Profile "${profile.name}" has no API configured, using ST default.`);
+    
+    // Try to find the active API by checking which one is currently selected
+    for (const [apiKey, apiValue] of Object.entries(globalContext.CONNECT_API_MAP)) {
+      if (apiValue && apiValue.selected) {
+        selectedApi = apiValue.selected;
+        console.log(`[WorldInfoRecommender] Using fallback API: ${apiKey} -> ${selectedApi}`);
+        break;
+      }
+    }
+  }
+  
   if (!selectedApi) {
-    throw new Error(`Could not determine API for profile "${profile.name}".`);
+    throw new Error(`Could not determine API for profile "${profile.name}". Please configure an API in Connection Manager or select a valid profile.`);
   }
 
   const templateData: Record<string, any> = {};
