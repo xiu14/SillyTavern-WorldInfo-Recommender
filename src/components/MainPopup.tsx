@@ -21,7 +21,7 @@ import {
 } from 'sillytavern-utils-lib/config';
 import { WIEntry } from 'sillytavern-utils-lib/types/world-info';
 import { runWorldInfoRecommendation, Session } from '../generate.js';
-import { ExtensionSettings, settingsManager } from '../settings.js';
+import { ExtensionSettings, SUPPORTED_LANGUAGES, SupportedLanguage, settingsManager } from '../settings.js';
 import { Character } from 'sillytavern-utils-lib/types';
 import { RegexScriptData } from 'sillytavern-utils-lib/types/regex';
 import { SuggestedEntry } from './SuggestedEntry.js';
@@ -60,11 +60,278 @@ if (!Handlebars.helpers['is_not_empty']) {
 
 const globalContext = SillyTavern.getContext();
 
+type UILabels = {
+  loadingText: string;
+  title: string;
+  connectionProfileTitle: string;
+  contextToSendTitle: string;
+  descriptionCheckbox: string;
+  messagesTitle: string;
+  messagesDropdown: {
+    none: string;
+    all: string;
+    first: string;
+    last: string;
+    range: string;
+  };
+  messagesFirstLabelBeforeInput: string;
+  messagesFirstLabelAfterInput: string;
+  messagesLastLabelBeforeInput: string;
+  messagesLastLabelAfterInput: string;
+  rangeLabel: string;
+  rangeConnector: string;
+  messageCountPlaceholders: {
+    start: string;
+    end: string;
+  };
+  selectCharacterTitle: string;
+  selectCharacterTooltip: string;
+  charCardLabel: string;
+  authorNoteLabel: string;
+  worldInfoLabel: string;
+  lorebooksTitle: string;
+  selectEntriesButton: string;
+  selectEntriesTooltip: string;
+  selectedEntriesSummary: (count: number) => string;
+  existingSuggestionsLabel: string;
+  maxContextLabel: string;
+  maxContextOptions: {
+    profile: string;
+    sampler: string;
+    custom: string;
+  };
+  maxContextPlaceholder: string;
+  maxResponseTokensLabel: string;
+  maxResponseTokensPlaceholder: string;
+  promptSectionTitle: string;
+  promptPresetLabel: string;
+  promptPlaceholder: string;
+  sendPromptButton: string;
+  generatingButton: string;
+  suggestedEntriesTitle: string;
+  addAllButton: string;
+  globalReviseButton: string;
+  globalReviseTooltip: string;
+  importEntryButton: string;
+  importEntryTooltip: string;
+  resetButton: string;
+  emptyStateMessage: string;
+  selectEntriesDialogTitle: string;
+  importEntriesDialogTitle: string;
+  languageButtonLabel: (languageLabel: string) => string;
+  languageButtonTooltip: string;
+};
+
+type UIMessages = {
+  needProfile: string;
+  needPrompt: string;
+  noResults: string;
+  noEntriesToAdd: string;
+  addAllConfirmTitle: string;
+  addAllConfirmMessage: (count: number) => string;
+  resetConfirmTitle: string;
+  resetConfirmMessage: string;
+  resetSuccess: string;
+  entryUnchanged: (comment: string) => string;
+  entryAdded: string;
+  entryUpdated: string;
+  entryAddFailed: (comment: string) => string;
+  entryProcessFailed: (comment: string) => string;
+  worldSaveFailed: (worldName: string) => string;
+  addAllResult: (added: number, updated: number, unchanged: number) => string;
+  languageSwitched: (languageLabel: string) => string;
+  importSuccess: (count: number) => string;
+  globalReviseApplied: string;
+};
+
+const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
+
+const LANGUAGE_LABELS: Record<SupportedLanguage, string> = {
+  en: 'English',
+  'zh-CN': '中文',
+};
+
+const UI_LABELS: Record<SupportedLanguage, UILabels> = {
+  en: {
+    loadingText: 'Loading...',
+    title: 'World Info Recommender',
+    connectionProfileTitle: 'Connection Profile',
+    contextToSendTitle: 'Context to Send',
+    descriptionCheckbox: 'Description of SillyTavern and Lorebook',
+    messagesTitle: 'Messages to Include',
+    messagesDropdown: {
+      none: 'None',
+      all: 'All Messages',
+      first: 'First X Messages',
+      last: 'Last X Messages',
+      range: 'Range',
+    },
+    messagesFirstLabelBeforeInput: 'First ',
+    messagesFirstLabelAfterInput: ' Messages',
+    messagesLastLabelBeforeInput: 'Last ',
+    messagesLastLabelAfterInput: ' Messages',
+    rangeLabel: 'Range: ',
+    rangeConnector: ' to ',
+    messageCountPlaceholders: {
+      start: 'Start',
+      end: 'End',
+    },
+    selectCharacterTitle: 'Select Character',
+    selectCharacterTooltip: 'Select character for your group.',
+    charCardLabel: 'Char Card',
+    authorNoteLabel: 'Author Note',
+    worldInfoLabel: 'World Info',
+    lorebooksTitle: 'Lorebooks to Include',
+    selectEntriesButton: 'Select Entries',
+    selectEntriesTooltip: 'Select specific entries from the chosen lorebooks',
+    selectedEntriesSummary: (count: number) => (count > 0 ? `${count} selected` : 'All entries included'),
+    existingSuggestionsLabel: 'Existing Suggestions',
+    maxContextLabel: 'Max Context',
+    maxContextOptions: {
+      profile: 'Use profile preset',
+      sampler: 'Use active preset in sampler settings',
+      custom: 'Custom',
+    },
+    maxContextPlaceholder: 'Enter max tokens',
+    maxResponseTokensLabel: 'Max Response Tokens',
+    maxResponseTokensPlaceholder: 'Enter max response tokens',
+    promptSectionTitle: 'Your Prompt',
+    promptPresetLabel: 'Prompt Preset',
+    promptPlaceholder: "e.g., 'Suggest entries for places {{user}} visited.'",
+    sendPromptButton: 'Send Prompt',
+    generatingButton: 'Generating...',
+    suggestedEntriesTitle: 'Suggested Entries',
+    addAllButton: 'Add All',
+    globalReviseButton: 'Global Revise',
+    globalReviseTooltip: 'Revise all selected existing entries and current suggestions in a single chat session',
+    importEntryButton: 'Import Entry',
+    importEntryTooltip: 'Import existing entries to continue/revise them',
+    resetButton: 'Reset',
+    emptyStateMessage: 'No suggestions yet. Send a prompt to get started!',
+    selectEntriesDialogTitle: 'Select Entries to Include in Context',
+    importEntriesDialogTitle: 'Select Entries to Import for Revision',
+    languageButtonLabel: (languageLabel: string) => `Language: ${languageLabel}`,
+    languageButtonTooltip: 'Switch interface language',
+  },
+  'zh-CN': {
+    loadingText: '加载中...',
+    title: '世界信息推荐器',
+    connectionProfileTitle: '连接配置',
+    contextToSendTitle: '发送上下文',
+    descriptionCheckbox: 'SillyTavern 与世界书信息说明',
+    messagesTitle: '包含的消息',
+    messagesDropdown: {
+      none: '不包含',
+      all: '全部消息',
+      first: '最前 X 条消息',
+      last: '最后 X 条消息',
+      range: '指定范围',
+    },
+    messagesFirstLabelBeforeInput: '前',
+    messagesFirstLabelAfterInput: ' 条消息',
+    messagesLastLabelBeforeInput: '后',
+    messagesLastLabelAfterInput: ' 条消息',
+    rangeLabel: '范围：',
+    rangeConnector: ' 至 ',
+    messageCountPlaceholders: {
+      start: '起始',
+      end: '结束',
+    },
+    selectCharacterTitle: '选择角色',
+    selectCharacterTooltip: '为小队选择角色。',
+    charCardLabel: '角色卡片',
+    authorNoteLabel: '作者附注',
+    worldInfoLabel: '世界信息',
+    lorebooksTitle: '包含的世界书',
+    selectEntriesButton: '选择条目',
+    selectEntriesTooltip: '从已选择的世界书中精确勾选条目',
+    selectedEntriesSummary: (count: number) => (count > 0 ? `已选择 ${count} 条` : '包含所有条目'),
+    existingSuggestionsLabel: '现有建议',
+    maxContextLabel: '最大上下文',
+    maxContextOptions: {
+      profile: '使用配置预设',
+      sampler: '使用采样器设置中的活动预设',
+      custom: '自定义',
+    },
+    maxContextPlaceholder: '输入最大上下文长度',
+    maxResponseTokensLabel: '最大回复 Token',
+    maxResponseTokensPlaceholder: '输入最大回复 Token',
+    promptSectionTitle: '你的提示词',
+    promptPresetLabel: '提示词预设',
+    promptPlaceholder: '例如：“为 {{user}} 去过的地方推荐条目”。',
+    sendPromptButton: '发送提示词',
+    generatingButton: '生成中...',
+    suggestedEntriesTitle: '推荐条目',
+    addAllButton: '全部添加',
+    globalReviseButton: '全局修改',
+    globalReviseTooltip: '在单个会话中修改所有已选条目和当前建议',
+    importEntryButton: '导入条目',
+    importEntryTooltip: '导入现有条目以继续/修改',
+    resetButton: '重置',
+    emptyStateMessage: '尚无建议，发送提示词以开始吧！',
+    selectEntriesDialogTitle: '选择要写入上下文的条目',
+    importEntriesDialogTitle: '选择要导入修改的条目',
+    languageButtonLabel: (languageLabel: string) => `界面语言：${languageLabel}`,
+    languageButtonTooltip: '切换界面语言',
+  },
+};
+
+const UI_MESSAGES: Record<SupportedLanguage, UIMessages> = {
+  en: {
+    needProfile: 'Please select a connection profile.',
+    needPrompt: 'Please enter a prompt.',
+    noResults: 'No results from AI',
+    noEntriesToAdd: 'No entries to add.',
+    addAllConfirmTitle: 'Add All',
+    addAllConfirmMessage: (count: number) => `Are you sure you want to add/update all ${count} suggested entries?`,
+    resetConfirmTitle: 'Reset',
+    resetConfirmMessage: 'Clear all suggestions and reset lorebook selection?',
+    resetSuccess: 'Reset successful',
+    entryUnchanged: (comment: string) => `No changes detected for "${comment}". Entry was not updated.`,
+    entryAdded: 'Entry added',
+    entryUpdated: 'Entry updated',
+    entryAddFailed: (comment: string) => `Failed to add entry: ${comment}`,
+    entryProcessFailed: (comment: string) => `Failed to process entry: ${comment}`,
+    worldSaveFailed: (worldName: string) => `Failed to save world: ${worldName}`,
+    addAllResult: (added: number, updated: number, unchanged: number) =>
+      `Processed: ${added} new, ${updated} updated, ${unchanged} unchanged.`,
+    languageSwitched: (languageLabel: string) => `Language switched to ${languageLabel}.`,
+    importSuccess: (count: number) => `Imported ${count} entries for revision.`,
+    globalReviseApplied: 'Changes from global revise session applied.',
+  },
+  'zh-CN': {
+    needProfile: '请先选择一个连接配置。',
+    needPrompt: '请输入提示词。',
+    noResults: 'AI 没有返回结果',
+    noEntriesToAdd: '没有可添加的条目。',
+    addAllConfirmTitle: '添加全部',
+    addAllConfirmMessage: (count: number) => `确定要添加或更新全部 ${count} 个推荐条目吗？`,
+    resetConfirmTitle: '重置',
+    resetConfirmMessage: '确认清空所有建议并重置世界书选择？',
+    resetSuccess: '已成功重置',
+    entryUnchanged: (comment: string) => `条目“${comment}”未检测到变更，未进行更新。`,
+    entryAdded: '条目已添加',
+    entryUpdated: '条目已更新',
+    entryAddFailed: (comment: string) => `添加条目失败：${comment}`,
+    entryProcessFailed: (comment: string) => `处理条目失败：${comment}`,
+    worldSaveFailed: (worldName: string) => `保存世界书失败：${worldName}`,
+    addAllResult: (added: number, updated: number, unchanged: number) =>
+      `处理完成：新增 ${added} 条，更新 ${updated} 条，未变化 ${unchanged} 条。`,
+    languageSwitched: (languageLabel: string) => `界面语言已切换为 ${languageLabel}。`,
+    importSuccess: (count: number) => `已导入 ${count} 条条目用于修改。`,
+    globalReviseApplied: '全局修改的内容已应用。',
+  },
+};
+
 const getAvatar = () => (this_chid ? st_getCharaFilename(this_chid) : selected_group);
 
 export const MainPopup: FC = () => {
   const forceUpdate = useForceUpdate();
   const settings = settingsManager.getSettings();
+  const fallbackLanguage = SUPPORTED_LANGUAGES.includes(settings.language) ? settings.language : DEFAULT_LANGUAGE;
+  const labels = UI_LABELS[fallbackLanguage];
+  const messages = UI_MESSAGES[fallbackLanguage];
+  const currentLanguageLabel = LANGUAGE_LABELS[fallbackLanguage];
   const [session, setSession] = useState<Session>({
     suggestedEntries: {},
     blackListedEntries: [],
@@ -194,6 +461,15 @@ export const MainPopup: FC = () => {
     forceUpdate();
   };
 
+  const handleLanguageToggle = () => {
+    const currentIndex = SUPPORTED_LANGUAGES.indexOf(fallbackLanguage);
+    const nextLanguage = SUPPORTED_LANGUAGES[(currentIndex + 1) % SUPPORTED_LANGUAGES.length];
+    const nextLabel = LANGUAGE_LABELS[nextLanguage];
+    const messageTemplate = UI_MESSAGES[nextLanguage]?.languageSwitched ?? messages.languageSwitched;
+    updateSetting('language', nextLanguage);
+    st_echo('info', messageTemplate(nextLabel));
+  };
+
   const addEntry = useCallback(
     async (
       entry: WIEntry,
@@ -244,12 +520,12 @@ export const MainPopup: FC = () => {
 
   const handleGeneration = useCallback(
     async (continueFrom?: { worldName: string; entry: WIEntry; prompt: string; mode: 'continue' | 'revise' }) => {
-      if (!settings.profileId) return st_echo('warning', 'Please select a connection profile.');
+      if (!settings.profileId) return st_echo('warning', messages.needProfile);
 
       const userPrompt = continueFrom?.prompt ?? settings.promptPresets[settings.promptPreset].content;
 
       if (!continueFrom && !userPrompt) {
-        return st_echo('warning', 'Please enter a prompt.');
+        return st_echo('warning', messages.needPrompt);
       }
 
       setIsGenerating(true);
@@ -363,7 +639,7 @@ export const MainPopup: FC = () => {
             });
           }
         } else {
-          st_echo('warning', 'No results from AI');
+          st_echo('warning', messages.noResults);
         }
       } catch (error: any) {
         console.error(error);
@@ -372,7 +648,7 @@ export const MainPopup: FC = () => {
         setIsGenerating(false);
       }
     },
-    [settings, session, entriesGroupByWorldName],
+    [settings, session, entriesGroupByWorldName, messages],
   );
 
   const handleAddSingleEntry = useCallback(
@@ -380,9 +656,9 @@ export const MainPopup: FC = () => {
       try {
         const status = await addEntry(entry, selectedTargetWorld);
         if (status === 'unchanged') {
-          st_echo('info', `No changes detected for "${entry.comment}". Entry was not updated.`);
+          st_echo('info', messages.entryUnchanged(entry.comment));
         } else {
-          st_echo('success', status === 'added' ? 'Entry added' : 'Entry updated');
+          st_echo('success', status === 'added' ? messages.entryAdded : messages.entryUpdated);
         }
 
         setSession((prev) => {
@@ -396,19 +672,20 @@ export const MainPopup: FC = () => {
         });
       } catch (error: any) {
         console.error(error);
-        st_echo('error', `Failed to add entry: ${error.message}`);
+        const extra = error?.message ? ` (${error.message})` : '';
+        st_echo('error', `${messages.entryAddFailed(entry.comment)}${extra}`);
       }
     },
-    [addEntry],
+    [addEntry, messages],
   );
 
   const handleAddAll = async () => {
     const totalEntries = Object.values(session.suggestedEntries).flat().length;
-    if (totalEntries === 0) return st_echo('warning', 'No entries to add.');
+    if (totalEntries === 0) return st_echo('warning', messages.noEntriesToAdd);
 
     const confirm = await globalContext.Popup.show.confirm(
-      'Add All',
-      `Are you sure you want to add/update all ${totalEntries} suggested entries?`,
+      messages.addAllConfirmTitle,
+      messages.addAllConfirmMessage(totalEntries),
     );
     if (!confirm) return;
 
@@ -437,7 +714,7 @@ export const MainPopup: FC = () => {
           modifiedWorlds.add(worldName);
         }
       } catch (error) {
-        st_echo('error', `Failed to process entry: ${entry.comment}`);
+        st_echo('error', messages.entryProcessFailed(entry.comment));
       }
     }
 
@@ -447,20 +724,17 @@ export const MainPopup: FC = () => {
         await globalContext.saveWorldInfo(worldName, finalFormat);
         globalContext.reloadWorldInfoEditor(worldName, true);
       } catch (error) {
-        st_echo('error', `Failed to save world: ${worldName}`);
+        st_echo('error', messages.worldSaveFailed(worldName));
       }
     }
 
     setSession((prev) => ({ ...prev, suggestedEntries: {} }));
-    st_echo('success', `Processed: ${addedCount} new, ${updatedCount} updated, ${unchangedCount} unchanged.`);
+    st_echo('success', messages.addAllResult(addedCount, updatedCount, unchangedCount));
     setIsGenerating(false);
   };
 
   const handleReset = async () => {
-    const confirm = await globalContext.Popup.show.confirm(
-      'Reset',
-      'Clear all suggestions and reset lorebook selection?',
-    );
+    const confirm = await globalContext.Popup.show.confirm(messages.resetConfirmTitle, messages.resetConfirmMessage);
     if (confirm) {
       setSession((prev) => ({
         ...prev,
@@ -469,7 +743,7 @@ export const MainPopup: FC = () => {
         selectedWorldNames: getAvatar() ? [...allWorldNames] : [],
         selectedEntryUids: {},
       }));
-      st_echo('success', 'Reset successful');
+      st_echo('success', messages.resetSuccess);
     }
   };
 
@@ -539,12 +813,12 @@ export const MainPopup: FC = () => {
           }
         }
         if (importCount > 0) {
-          st_echo('success', `Imported ${importCount} entries for revision.`);
+          st_echo('success', messages.importSuccess(importCount));
         }
         return { ...prev, suggestedEntries: newSuggested };
       });
     },
-    [entriesGroupByWorldName],
+    [entriesGroupByWorldName, messages],
   );
 
   const entriesForSelectionPopup = useMemo(() => {
@@ -634,7 +908,7 @@ export const MainPopup: FC = () => {
     });
 
     setSession((prev) => ({ ...prev, suggestedEntries: newSuggestedEntries }));
-    st_echo('success', 'Changes from global revise session applied.');
+    st_echo('success', messages.globalReviseApplied);
   };
 
   const promptPresetItems = useMemo(
@@ -653,7 +927,7 @@ export const MainPopup: FC = () => {
   );
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>{labels.loadingText}</div>;
   }
 
   const suggestedEntriesList = Object.entries(session.suggestedEntries).flatMap(([worldName, entries]) =>
@@ -663,11 +937,23 @@ export const MainPopup: FC = () => {
   return (
     <>
       <div id="worldInfoRecommenderPopup">
-        <h2>World Info Recommender</h2>
+        <div className="popup_header">
+          <h2>{labels.title}</h2>
+          <div className="popup_header_buttons">
+            <STButton
+              className="menu_button language-toggle"
+              onClick={handleLanguageToggle}
+              title={labels.languageButtonTooltip}
+            >
+              <i className="fa-solid fa-language" />
+              <span>{labels.languageButtonLabel(currentLanguageLabel)}</span>
+            </STButton>
+          </div>
+        </div>
         <div className="container">
           <div className="column">
             <div className="card">
-              <h3>Connection Profile</h3>
+              <h3>{labels.connectionProfileTitle}</h3>
               <STConnectionProfileSelect
                 initialSelectedProfileId={settings.profileId}
                 // @ts-ignore
@@ -675,7 +961,7 @@ export const MainPopup: FC = () => {
               />
             </div>
             <div className="card">
-              <h3>Context to Send</h3>
+              <h3>{labels.contextToSendTitle}</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 <label className="checkbox_label">
                   <input
@@ -683,11 +969,11 @@ export const MainPopup: FC = () => {
                     checked={settings.contextToSend.stDescription}
                     onChange={(e) => updateContextToSend('stDescription', e.target.checked)}
                   />
-                  Description of SillyTavern and Lorebook
+                  {labels.descriptionCheckbox}
                 </label>
                 {avatarKey !== '_global' && (
                   <div className="message-options">
-                    <h4>Messages to Include</h4>
+                    <h4>{labels.messagesTitle}</h4>
                     <select
                       className="text_pole"
                       value={settings.contextToSend.messages.type}
@@ -698,16 +984,16 @@ export const MainPopup: FC = () => {
                         })
                       }
                     >
-                      <option value="none">None</option>
-                      <option value="all">All Messages</option>
-                      <option value="first">First X Messages</option>
-                      <option value="last">Last X Messages</option>
-                      <option value="range">Range</option>
+                      <option value="none">{labels.messagesDropdown.none}</option>
+                      <option value="all">{labels.messagesDropdown.all}</option>
+                      <option value="first">{labels.messagesDropdown.first}</option>
+                      <option value="last">{labels.messagesDropdown.last}</option>
+                      <option value="range">{labels.messagesDropdown.range}</option>
                     </select>
                     {settings.contextToSend.messages.type === 'first' && (
                       <div style={{ marginTop: '10px' }}>
                         <label>
-                          First{' '}
+                          {labels.messagesFirstLabelBeforeInput}
                           <input
                             type="number"
                             className="text_pole small message-input"
@@ -719,15 +1005,15 @@ export const MainPopup: FC = () => {
                                 first: parseInt(e.target.value) || 10,
                               })
                             }
-                          />{' '}
-                          Messages
+                          />
+                          {labels.messagesFirstLabelAfterInput}
                         </label>
                       </div>
                     )}
                     {settings.contextToSend.messages.type === 'last' && (
                       <div style={{ marginTop: '10px' }}>
                         <label>
-                          Last{' '}
+                          {labels.messagesLastLabelBeforeInput}
                           <input
                             type="number"
                             className="text_pole small message-input"
@@ -739,20 +1025,20 @@ export const MainPopup: FC = () => {
                                 last: parseInt(e.target.value) || 10,
                               })
                             }
-                          />{' '}
-                          Messages
+                          />
+                          {labels.messagesLastLabelAfterInput}
                         </label>
                       </div>
                     )}
                     {settings.contextToSend.messages.type === 'range' && (
                       <div style={{ marginTop: '10px' }}>
                         <label>
-                          Range:{' '}
+                          {labels.rangeLabel}
                           <input
                             type="number"
                             className="text_pole small message-input"
                             min="0"
-                            placeholder="Start"
+                            placeholder={labels.messageCountPlaceholders.start}
                             value={settings.contextToSend.messages.range?.start ?? 0}
                             onChange={(e) =>
                               updateContextToSend('messages', {
@@ -763,13 +1049,13 @@ export const MainPopup: FC = () => {
                                 },
                               })
                             }
-                          />{' '}
-                          to{' '}
+                          />
+                          {labels.rangeConnector}
                           <input
                             type="number"
                             className="text_pole small message-input"
                             min="1"
-                            placeholder="End"
+                            placeholder={labels.messageCountPlaceholders.end}
                             value={settings.contextToSend.messages.range?.end ?? 10}
                             onChange={(e) =>
                               updateContextToSend('messages', {
@@ -792,12 +1078,12 @@ export const MainPopup: FC = () => {
                     checked={settings.contextToSend.charCard}
                     onChange={(e) => updateContextToSend('charCard', e.target.checked)}
                   />
-                  Char Card
+                  {labels.charCardLabel}
                 </label>
                 {groupMembers.length > 0 && (
                   <div>
-                    <h4>Select Character</h4>
-                    <select className="text_pole" title="Select character for your group.">
+                    <h4>{labels.selectCharacterTitle}</h4>
+                    <select className="text_pole" title={labels.selectCharacterTooltip}>
                       {groupMembers.map((member) => (
                         <option key={member.avatar} value={member.avatar}>
                           {member.name}
@@ -811,19 +1097,19 @@ export const MainPopup: FC = () => {
                     type="checkbox"
                     checked={settings.contextToSend.authorNote}
                     onChange={(e) => updateContextToSend('authorNote', e.target.checked)}
-                  />{' '}
-                  Author Note
+                  />
+                  {labels.authorNoteLabel}
                 </label>
                 <label className="checkbox_label">
                   <input
                     type="checkbox"
                     checked={settings.contextToSend.worldInfo}
                     onChange={(e) => updateContextToSend('worldInfo', e.target.checked)}
-                  />{' '}
-                  World Info
+                  />
+                  {labels.worldInfoLabel}
                 </label>
                 <div>
-                  <h4>Lorebooks to Include</h4>
+                  <h4>{labels.lorebooksTitle}</h4>
                   <STFancyDropdown
                     items={worldInfoDropdownItems}
                     value={session.selectedWorldNames}
@@ -844,14 +1130,12 @@ export const MainPopup: FC = () => {
                     <STButton
                       className="menu_button"
                       onClick={() => setIsSelectingEntries(true)}
-                      title="Select specific entries from the chosen lorebooks"
+                      title={labels.selectEntriesTooltip}
                     >
                       <i className="fa-solid fa-list-check"></i>
-                      Select Entries
+                      {labels.selectEntriesButton}
                     </STButton>
-                    <span>
-                      {totalSelectedEntries > 0 ? `${totalSelectedEntries} selected` : 'All entries included'}
-                    </span>
+                    <span>{labels.selectedEntriesSummary(totalSelectedEntries)}</span>
                   </div>
                 )}
                 <label className="checkbox_label">
@@ -859,23 +1143,23 @@ export const MainPopup: FC = () => {
                     type="checkbox"
                     checked={settings.contextToSend.suggestedEntries}
                     onChange={(e) => updateContextToSend('suggestedEntries', e.target.checked)}
-                  />{' '}
-                  Existing Suggestions
+                  />
+                  {labels.existingSuggestionsLabel}
                 </label>
               </div>
             </div>
             <div className="card">
               <label>
-                Max Context
+                {labels.maxContextLabel}
                 <select
                   className="text_pole"
-                  title="Select Max Context Type"
+                  title={labels.maxContextLabel}
                   value={settings.maxContextType}
                   onChange={(e) => updateSetting('maxContextType', e.target.value as any)}
                 >
-                  <option value="profile">Use profile preset</option>
-                  <option value="sampler">Use active preset in sampler settings</option>
-                  <option value="custom">Custom</option>
+                  <option value="profile">{labels.maxContextOptions.profile}</option>
+                  <option value="sampler">{labels.maxContextOptions.sampler}</option>
+                  <option value="custom">{labels.maxContextOptions.custom}</option>
                 </select>
               </label>
               {settings.maxContextType === 'custom' && (
@@ -885,29 +1169,29 @@ export const MainPopup: FC = () => {
                     className="text_pole"
                     min="1"
                     step="1"
-                    placeholder="Enter max tokens"
+                    placeholder={labels.maxContextPlaceholder}
                     value={settings.maxContextValue}
                     onChange={(e) => updateSetting('maxContextValue', parseInt(e.target.value) || 2048)}
                   />
                 </label>
               )}
               <label style={{ display: 'block', marginTop: '10px' }}>
-                Max Response Tokens
+                {labels.maxResponseTokensLabel}
                 <input
                   type="number"
                   className="text_pole"
                   min="1"
                   step="1"
-                  placeholder="Enter max response tokens"
+                  placeholder={labels.maxResponseTokensPlaceholder}
                   value={settings.maxResponseToken}
                   onChange={(e) => updateSetting('maxResponseToken', parseInt(e.target.value) || 256)}
                 />
               </label>
             </div>
             <div className="card">
-              <h3>Your Prompt</h3>
+              <h3>{labels.promptSectionTitle}</h3>
               <STPresetSelect
-                label="Prompt Preset"
+                label={labels.promptPresetLabel}
                 items={promptPresetItems}
                 value={settings.promptPreset}
                 readOnlyValues={['default']}
@@ -935,7 +1219,7 @@ export const MainPopup: FC = () => {
                     updateSetting('promptPresets', newPresets);
                   }
                 }}
-                placeholder="e.g., 'Suggest entries for places {{user}} visited.'"
+                placeholder={labels.promptPlaceholder}
                 rows={4}
                 style={{ marginTop: '5px', width: '100%' }}
               />
@@ -945,43 +1229,43 @@ export const MainPopup: FC = () => {
                 className="menu_button interactable"
                 style={{ marginTop: '5px' }}
               >
-                {isGenerating ? 'Generating...' : 'Send Prompt'}
+                {isGenerating ? labels.generatingButton : labels.sendPromptButton}
               </STButton>
             </div>
           </div>
           <div className="wide-column">
             <div className="card">
-              <h3>Suggested Entries</h3>
+              <h3>{labels.suggestedEntriesTitle}</h3>
               <div className="actions">
                 <STButton
                   onClick={handleAddAll}
                   disabled={isGenerating || suggestedEntriesList.length === 0}
                   className="menu_button interactable"
                 >
-                  Add All
+                  {labels.addAllButton}
                 </STButton>
                 <STButton
                   onClick={() => setIsGlobalReviseOpen(true)}
                   disabled={isGenerating}
                   className="menu_button interactable"
-                  title="Revise all selected existing entries and current suggestions in a single chat session"
+                  title={labels.globalReviseTooltip}
                 >
-                  <i className="fa-solid fa-comments"></i> Global Revise
+                  <i className="fa-solid fa-comments"></i> {labels.globalReviseButton}
                 </STButton>
                 <STButton
                   onClick={() => setIsImporting(true)}
                   disabled={isGenerating}
                   className="menu_button interactable"
-                  title="Import existing entries to continue/revise them"
+                  title={labels.importEntryTooltip}
                 >
-                  Import Entry
+                  {labels.importEntryButton}
                 </STButton>
                 <STButton onClick={handleReset} disabled={isGenerating} className="menu_button interactable">
-                  Reset
+                  {labels.resetButton}
                 </STButton>
               </div>
               <div>
-                {suggestedEntriesList.length === 0 && <p>No suggestions yet. Send a prompt to get started!</p>}
+                {suggestedEntriesList.length === 0 && <p>{labels.emptyStateMessage}</p>}
                 {suggestedEntriesList.map(({ worldName, entry }) => (
                   <SuggestedEntry
                     key={`${worldName}-${entry.uid}-${entry.comment}`}
@@ -1012,7 +1296,7 @@ export const MainPopup: FC = () => {
               ref={selectEntriesPopupRef}
               entriesByWorldName={entriesForSelectionPopup}
               initialSelectedUids={session.selectedEntryUids}
-              title="Select Entries to Include in Context"
+              title={labels.selectEntriesDialogTitle}
             />
           }
           onComplete={(confirmed) => {
@@ -1033,7 +1317,7 @@ export const MainPopup: FC = () => {
               ref={importPopupRef}
               entriesByWorldName={entriesGroupByWorldName}
               initialSelectedUids={{}}
-              title="Select Entries to Import for Revision"
+              title={labels.importEntriesDialogTitle}
             />
           }
           onComplete={(confirmed) => {
