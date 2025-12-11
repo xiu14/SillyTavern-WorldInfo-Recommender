@@ -10,6 +10,7 @@ import {
 import { st_runRegexScript } from 'sillytavern-utils-lib/config';
 import { RegexScriptData } from 'sillytavern-utils-lib/types/regex';
 import { WIEntry } from 'sillytavern-utils-lib/types/world-info';
+import { SupportedLanguage, settingsManager } from '../settings.js';
 
 const globalContext = SillyTavern.getContext();
 
@@ -32,6 +33,39 @@ export interface EditEntryPopupRef {
   };
 }
 
+type EditLabels = {
+  title: string;
+  nameLabel: string;
+  keywordsLabel: string;
+  applyRegexTitle: string;
+  regexPlaceholder: string;
+  simulateButton: string;
+  contentPlaceholder: string;
+};
+
+const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
+
+const EDIT_LABELS: Record<SupportedLanguage, EditLabels> = {
+  en: {
+    title: 'Edit Suggestion',
+    nameLabel: 'Title',
+    keywordsLabel: 'Keywords (comma-separated)',
+    applyRegexTitle: 'Apply Regex Scripts',
+    regexPlaceholder: 'Select regex scripts...',
+    simulateButton: 'Simulate Regex',
+    contentPlaceholder: 'Resulting content...',
+  },
+  'zh-CN': {
+    title: '编辑建议条目',
+    nameLabel: '标题',
+    keywordsLabel: '触发词（以逗号分隔）',
+    applyRegexTitle: '应用正则脚本',
+    regexPlaceholder: '请选择要应用的正则脚本…',
+    simulateButton: '模拟应用正则',
+    contentPlaceholder: '最终内容预览…',
+  },
+};
+
 /**
  * A popup form for editing a suggested World Info entry, including its content and associated regex scripts.
  * It's wrapped in `forwardRef` to allow the parent component to call `getFormData` imperatively when the
@@ -44,6 +78,10 @@ export const EditEntryPopup = forwardRef<EditEntryPopupRef, EditEntryPopupProps>
   const [keywords, setKeywords] = useState(entry.key.join(', '));
   const [content, setContent] = useState(entry.content);
   const [regexListItems, setRegexListItems] = useState<SortableListItemData[]>([]);
+
+  const settings = settingsManager.getSettings();
+  const language: SupportedLanguage = (settings?.language ?? DEFAULT_LANGUAGE) as SupportedLanguage;
+  const labels = EDIT_LABELS[language] ?? EDIT_LABELS[DEFAULT_LANGUAGE];
 
   useEffect(() => {
     const loadedRegexes = globalContext.extensionSettings.regex ?? [];
@@ -123,24 +161,24 @@ export const EditEntryPopup = forwardRef<EditEntryPopupRef, EditEntryPopupProps>
   // The component does not render its own buttons, as they are provided by the parent <Popup>.
   return (
     <div className="edit-popup" style={{ padding: '10px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-      <h3>Edit Suggestion</h3>
+      <h3>{labels.title}</h3>
       <div>
-        <label>Title</label>
+        <label>{labels.nameLabel}</label>
         <input type="text" className="text_pole" value={title} onChange={(e) => setTitle(e.target.value)} />
       </div>
       <div>
-        <label>Keywords (comma-separated)</label>
+        <label>{labels.keywordsLabel}</label>
         <input type="text" className="text_pole" value={keywords} onChange={(e) => setKeywords(e.target.value)} />
       </div>
       <div>
-        <h4>Apply Regex Scripts</h4>
+        <h4>{labels.applyRegexTitle}</h4>
         <STFancyDropdown
           items={fancyDropdownItems}
           value={selectedRegexIds}
           onChange={handleRegexSelectionChange}
           multiple
           enableSearch
-          placeholder="Select regex scripts..."
+          placeholder={labels.regexPlaceholder}
         />
         {regexListItems.length > 0 && (
           <STSortableList
@@ -153,13 +191,13 @@ export const EditEntryPopup = forwardRef<EditEntryPopupRef, EditEntryPopupProps>
         )}
       </div>
       <STButton onClick={handleSimulate} className="menu_button">
-        Simulate Regex
+        {labels.simulateButton}
       </STButton>
       <STTextarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={8}
-        placeholder="Resulting content..."
+        placeholder={labels.contentPlaceholder}
       />
     </div>
   );

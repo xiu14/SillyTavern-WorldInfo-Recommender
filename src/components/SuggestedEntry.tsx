@@ -8,10 +8,68 @@ import { CompareEntryPopup } from './CompareEntryPopup.js';
 import { EditEntryPopup, EditEntryPopupRef } from './EditEntryPopup.js';
 import { ReviseSessionManager } from './ReviseSessionManager.js';
 import { Session } from '../generate.js';
-import { ExtensionSettings } from '../settings.js';
+import { ExtensionSettings, SupportedLanguage, settingsManager } from '../settings.js';
 import { ReviseState } from '../revise-types.js';
 
 const converter = new showdown.Converter();
+
+type SuggestedEntryLabels = {
+  addUpdate: string;
+  addNew: string;
+  reviseSessionButton: string;
+  reviseSessionTooltip: string;
+  continueLabelIdle: string;
+  continueLabelBusy: string;
+  continueTooltip: string;
+  reviseLabelIdle: string;
+  reviseLabelBusy: string;
+  reviseTooltip: string;
+  editButton: string;
+  compareButton: string;
+  blacklistButton: string;
+  removeButton: string;
+  instructionsPlaceholder: string;
+};
+
+const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
+
+const SUGGESTED_ENTRY_LABELS: Record<SupportedLanguage, SuggestedEntryLabels> = {
+  en: {
+    addUpdate: 'Update',
+    addNew: 'Add',
+    reviseSessionButton: 'Revise',
+    reviseSessionTooltip: 'Revise this entry with a chat-based AI session.',
+    continueLabelIdle: 'Continue',
+    continueLabelBusy: '...',
+    continueTooltip: 'Continue writing this entry. You can provide instructions in the textbox below.',
+    reviseLabelIdle: 'Revise',
+    reviseLabelBusy: '...',
+    reviseTooltip: 'Request changes to this entry. Provide instructions in the textbox below.',
+    editButton: 'Edit',
+    compareButton: 'Compare',
+    blacklistButton: 'Blacklist',
+    removeButton: 'Remove',
+    instructionsPlaceholder:
+      "Optional instructions to continue or revise this entry. Then press 'Continue' or 'Revise'.",
+  },
+  'zh-CN': {
+    addUpdate: '更新',
+    addNew: '添加',
+    reviseSessionButton: '对话修改',
+    reviseSessionTooltip: '通过与 AI 对话会话来修改此条目。',
+    continueLabelIdle: '续写',
+    continueLabelBusy: '...',
+    continueTooltip: '继续撰写此条目，可在下方输入续写说明。',
+    reviseLabelIdle: '修改',
+    reviseLabelBusy: '...',
+    reviseTooltip: '根据下方说明请求修改此条目。',
+    editButton: '手动编辑',
+    compareButton: '对比',
+    blacklistButton: '拉黑此建议',
+    removeButton: '移除',
+    instructionsPlaceholder: '在此填写续写或修改说明，然后点击“续写”或“修改”。',
+  },
+};
 
 export interface SuggestedEntryProps {
   initialWorldName: string;
@@ -52,6 +110,10 @@ export const SuggestedEntry: FC<SuggestedEntryProps> = ({
   sessionForContext,
   contextToSend,
 }) => {
+  const settings = settingsManager.getSettings();
+  const language: SupportedLanguage = (settings?.language ?? DEFAULT_LANGUAGE) as SupportedLanguage;
+  const labels = SUGGESTED_ENTRY_LABELS[language] ?? SUGGESTED_ENTRY_LABELS[DEFAULT_LANGUAGE];
+
   const [selectedWorld, setSelectedWorld] = useState(() => {
     const initial = allWorldNames.find((w) => w === initialWorldName);
     return initial ?? allWorldNames[0] ?? '';
@@ -76,6 +138,7 @@ export const SuggestedEntry: FC<SuggestedEntryProps> = ({
   const handleAddClick = async () => {
     setIsAdding(true);
     await onAdd(entry, initialWorldName, selectedWorld);
+    setIsAdding(false);
   };
 
   const handleContinueClick = async () => {
@@ -111,34 +174,34 @@ export const SuggestedEntry: FC<SuggestedEntryProps> = ({
             ))}
           </select>
           <STButton onClick={handleAddClick} disabled={isAdding || isActing} className="menu_button interactable add">
-            {isUpdate ? 'Update' : 'Add'}
+            {isUpdate ? labels.addUpdate : labels.addNew}
           </STButton>
           <STButton
             onClick={() => setIsReviseSessionManagerOpen(true)}
             disabled={isActing}
             className="menu_button interactable"
-            title="Revise this entry with a chat-based AI session."
+            title={labels.reviseSessionTooltip}
           >
-            <i className="fa-solid fa-comments"></i> Revise
+            <i className="fa-solid fa-comments"></i> {labels.reviseSessionButton}
           </STButton>
           <STButton
             onClick={handleContinueClick}
             disabled={isActing}
             className="menu_button interactable continue"
-            title="Continue writing this entry. You can provide instructions in the textbox below."
+            title={labels.continueTooltip}
           >
-            {isContinuing ? '...' : 'Continue'}
+            {isContinuing ? labels.continueLabelBusy : labels.continueLabelIdle}
           </STButton>
           <STButton
             onClick={handleReviseClick}
             disabled={isActing}
             className="menu_button interactable revise"
-            title="Request changes to this entry. Provide instructions in the textbox below."
+            title={labels.reviseTooltip}
           >
-            {isRevising ? '...' : 'Revise'}
+            {isRevising ? labels.reviseLabelBusy : labels.reviseLabelIdle}
           </STButton>
           <STButton onClick={() => setIsEditing(true)} disabled={isActing} className="menu_button interactable edit">
-            Edit
+            {labels.editButton}
           </STButton>
           {isUpdate && (
             <STButton
@@ -146,7 +209,7 @@ export const SuggestedEntry: FC<SuggestedEntryProps> = ({
               disabled={isActing}
               className="menu_button interactable compare"
             >
-              Compare
+              {labels.compareButton}
             </STButton>
           )}
           <STButton
@@ -154,14 +217,14 @@ export const SuggestedEntry: FC<SuggestedEntryProps> = ({
             disabled={isActing}
             className="menu_button interactable blacklist"
           >
-            Blacklist
+            {labels.blacklistButton}
           </STButton>
           <STButton
             onClick={() => onRemove(entry, initialWorldName, false)}
             disabled={isActing}
             className="menu_button interactable remove"
           >
-            Remove
+            {labels.removeButton}
           </STButton>
         </div>
         <h4 className="comment">{entry.comment}</h4>
@@ -171,7 +234,7 @@ export const SuggestedEntry: FC<SuggestedEntryProps> = ({
           <STTextarea
             value={updatePrompt}
             onChange={(e) => setUpdatePrompt(e.target.value)}
-            placeholder="Optional instructions to continue or revise this entry. Then press 'Continue' or 'Revise'."
+            placeholder={labels.instructionsPlaceholder}
             rows={2}
             style={{ width: '100%' }}
           />

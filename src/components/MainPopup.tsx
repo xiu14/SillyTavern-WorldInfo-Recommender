@@ -108,6 +108,7 @@ type UILabels = {
   promptPlaceholder: string;
   sendPromptButton: string;
   generatingButton: string;
+  retryButton: string;
   suggestedEntriesTitle: string;
   addAllButton: string;
   globalReviseButton: string;
@@ -127,6 +128,7 @@ type UIMessages = {
   needPrompt: string;
   noResults: string;
   noEntriesToAdd: string;
+  requestTimeout: string;
   addAllConfirmTitle: string;
   addAllConfirmMessage: (count: number) => string;
   resetConfirmTitle: string;
@@ -143,6 +145,8 @@ type UIMessages = {
   importSuccess: (count: number) => string;
   globalReviseApplied: string;
 };
+
+const REQUEST_TIMEOUT_MS = 60000;
 
 const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
 
@@ -200,6 +204,7 @@ const UI_LABELS: Record<SupportedLanguage, UILabels> = {
     promptPlaceholder: "e.g., 'Suggest entries for places {{user}} visited.'",
     sendPromptButton: 'Send Prompt',
     generatingButton: 'Generating...',
+    retryButton: 'Retry',
     suggestedEntriesTitle: 'Suggested Entries',
     addAllButton: 'Add All',
     globalReviseButton: 'Global Revise',
@@ -258,9 +263,10 @@ const UI_LABELS: Record<SupportedLanguage, UILabels> = {
     maxResponseTokensPlaceholder: '输入最大回复 Token',
     promptSectionTitle: '你的提示词',
     promptPresetLabel: '提示词预设',
-    promptPlaceholder: '例如：“为 {{user}} 去过的地方推荐条目”。',
+    promptPlaceholder: '例如："为 {{user}} 去过的地方推荐条目"。',
     sendPromptButton: '发送提示词',
     generatingButton: '生成中...',
+    retryButton: '重新生成',
     suggestedEntriesTitle: '推荐条目',
     addAllButton: '全部添加',
     globalReviseButton: '全局修改',
@@ -282,6 +288,7 @@ const UI_MESSAGES: Record<SupportedLanguage, UIMessages> = {
     needPrompt: 'Please enter a prompt.',
     noResults: 'No results from AI',
     noEntriesToAdd: 'No entries to add.',
+    requestTimeout: 'Request timed out. Please check your network or proxy settings.',
     addAllConfirmTitle: 'Add All',
     addAllConfirmMessage: (count: number) => `Are you sure you want to add/update all ${count} suggested entries?`,
     resetConfirmTitle: 'Reset',
@@ -304,6 +311,7 @@ const UI_MESSAGES: Record<SupportedLanguage, UIMessages> = {
     needPrompt: '请输入提示词。',
     noResults: 'AI 没有返回结果',
     noEntriesToAdd: '没有可添加的条目。',
+    requestTimeout: '请求超时，请检查网络或代理设置。',
     addAllConfirmTitle: '添加全部',
     addAllConfirmMessage: (count: number) => `确定要添加或更新全部 ${count} 个推荐条目吗？`,
     resetConfirmTitle: '重置',
@@ -347,6 +355,7 @@ export const MainPopup: FC = () => {
   const [isSelectingEntries, setIsSelectingEntries] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isGlobalReviseOpen, setIsGlobalReviseOpen] = useState(false);
+  const [lastError, setLastError] = useState<string | null>(null);
 
   const selectEntriesPopupRef = useRef<SelectEntriesPopupRef>(null);
   const importPopupRef = useRef<SelectEntriesPopupRef>(null);
@@ -528,6 +537,7 @@ export const MainPopup: FC = () => {
         return st_echo('warning', messages.needPrompt);
       }
 
+      setLastError(null);
       setIsGenerating(true);
       try {
         const profile = globalContext.extensionSettings.connectionManager?.profiles?.find(
@@ -592,18 +602,32 @@ export const MainPopup: FC = () => {
           ? { worldName: continueFrom.worldName, entry: continueFrom.entry, mode: continueFrom.mode }
           : undefined;
 
-        const resultingEntries = await runWorldInfoRecommendation({
-          profileId: settings.profileId,
-          userPrompt: userPrompt,
-          buildPromptOptions,
-          session,
-          entriesGroupByWorldName,
-          promptSettings,
-          mainContextList: settings.mainContextTemplatePresets[settings.mainContextTemplatePreset].prompts
-            .filter((p) => p.enabled)
-            .map((p) => ({ promptName: p.promptName, role: p.role })),
-          maxResponseToken: settings.maxResponseToken,
-          continueFrom: continueFromPayload,
+        const resultingEntries = await new Promise<Record<string, WIEntry[]>>((resolve, reject) => {
+          const timeoutId = window.setTimeout(() => {
+            reject(new Error(messages.requestTimeout));
+          }, REQUEST_TIMEOUT_MS);
+
+          runWorldInfoRecommendation({
+            profileId: settings.profileId,
+            userPrompt: userPrompt,
+            buildPromptOptions,
+            session,
+            entriesGroupByWorldName,
+            promptSettings,
+            mainContextList: settings.mainContextTemplatePresets[settings.mainContextTemplatePreset].prompts
+              .filter((p) => p.enabled)
+              .map((p) => ({ promptName: p.promptName, role: p.role })),
+            maxResponseToken: settings.maxResponseToken,
+            continueFrom: continueFromPayload,
+          })
+            .then((result) => {
+              clearTimeout(timeoutId);
+              resolve(result);
+            })
+            .catch((error) => {
+              clearTimeout(timeoutId);
+              reject(error);
+            });
         });
 
         if (Object.keys(resultingEntries).length > 0) {
@@ -643,7 +667,13 @@ export const MainPopup: FC = () => {
         }
       } catch (error: any) {
         console.error(error);
-        st_echo('error', error instanceof Error ? error.message : String(error));
+        const rawMessage = error instanceof Error ? error.message : String(error);
+        const friendlyMessage =
+          rawMessage === messages.requestTimeout
+            ? messages.requestTimeout
+            : `${messages.requestTimeout} (${rawMessage})`;
+        setLastError(friendlyMessage);
+        st_echo('error', friendlyMessage);
       } finally {
         setIsGenerating(false);
       }
@@ -1223,14 +1253,28 @@ export const MainPopup: FC = () => {
                 rows={4}
                 style={{ marginTop: '5px', width: '100%' }}
               />
-              <STButton
-                onClick={() => handleGeneration()}
-                disabled={isGenerating}
-                className="menu_button interactable"
-                style={{ marginTop: '5px' }}
-              >
-                {isGenerating ? labels.generatingButton : labels.sendPromptButton}
-              </STButton>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '5px' }}>
+                <STButton
+                  onClick={() => handleGeneration()}
+                  disabled={isGenerating}
+                  className="menu_button interactable"
+                >
+                  {isGenerating ? labels.generatingButton : labels.sendPromptButton}
+                </STButton>
+                {lastError && (
+                  <STButton
+                    onClick={() => handleGeneration()}
+                    disabled={isGenerating}
+                    className="menu_button interactable"
+                    title={lastError}
+                  >
+                    <i className="fa-solid fa-rotate-right"></i> {labels.retryButton}
+                  </STButton>
+                )}
+              </div>
+              {lastError && (
+                <p style={{ marginTop: '6px', color: 'var(--red)', fontSize: '0.9em' }}>{lastError}</p>
+              )}
             </div>
           </div>
           <div className="wide-column">
