@@ -1228,6 +1228,8 @@ export const MainPopup: FC = () => {
                 />
               </label>
             </div>
+          </div>
+          <div className="wide-column">
             <div className="card">
               <h3>{labels.promptSectionTitle}</h3>
               <STPresetSelect
@@ -1291,8 +1293,6 @@ export const MainPopup: FC = () => {
                 </div>
               )}
             </div>
-          </div>
-          <div className="wide-column">
             <div className="card">
               <h3>{labels.suggestedEntriesTitle}</h3>
               <div className="actions">

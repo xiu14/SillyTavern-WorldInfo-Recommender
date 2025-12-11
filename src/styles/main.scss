@@ -132,6 +132,7 @@ dialog:has(.select-entries-popup) {
 
         @media (max-width: 768px) {
             width: 100%;
+            order: -1;
         }
     }
 

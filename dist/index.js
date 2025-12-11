@@ -27273,7 +27273,9 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
                 }
               )
             ] })
-          ] }),
+          ] })
+        ] }),
+        /* @__PURE__ */ N.jsxs("div", { className: "wide-column", children: [
           /* @__PURE__ */ N.jsxs("div", { className: "card", children: [
             /* @__PURE__ */ N.jsx("h3", { children: a.promptSectionTitle }),
             /* @__PURE__ */ N.jsx(
@@ -27336,68 +27338,68 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
               " ",
               O
             ] }) })
-          ] })
-        ] }),
-        /* @__PURE__ */ N.jsx("div", { className: "wide-column", children: /* @__PURE__ */ N.jsxs("div", { className: "card", children: [
-          /* @__PURE__ */ N.jsx("h3", { children: a.suggestedEntriesTitle }),
-          /* @__PURE__ */ N.jsxs("div", { className: "actions", children: [
-            /* @__PURE__ */ N.jsx(
-              je,
-              {
-                onClick: ie,
-                disabled: T || Ge.length === 0,
-                className: "menu_button interactable",
-                children: a.addAllButton
-              }
-            ),
-            /* @__PURE__ */ N.jsxs(
-              je,
-              {
-                onClick: () => A(!0),
-                disabled: T,
-                className: "menu_button interactable",
-                title: a.globalReviseTooltip,
-                children: [
-                  /* @__PURE__ */ N.jsx("i", { className: "fa-solid fa-comments" }),
-                  " ",
-                  a.globalReviseButton
-                ]
-              }
-            ),
-            /* @__PURE__ */ N.jsx(
-              je,
-              {
-                onClick: () => S(!0),
-                disabled: T,
-                className: "menu_button interactable",
-                title: a.importEntryTooltip,
-                children: a.importEntryButton
-              }
-            ),
-            /* @__PURE__ */ N.jsx(je, { onClick: I, disabled: T, className: "menu_button interactable", children: a.resetButton })
           ] }),
-          /* @__PURE__ */ N.jsxs("div", { children: [
-            Ge.length === 0 && /* @__PURE__ */ N.jsx("p", { children: a.emptyStateMessage }),
-            Ge.map(({ worldName: F, entry: ce }) => /* @__PURE__ */ N.jsx(
-              BA,
-              {
-                initialWorldName: F,
-                entry: ce,
-                allWorldNames: f,
-                existingEntry: v[F]?.find((ge) => ge.uid === ce.uid),
-                sessionRegexIds: h.regexIds,
-                onAdd: K,
-                onRemove: $,
-                onContinue: B,
-                onUpdate: te,
-                entriesGroupByWorldName: v,
-                sessionForContext: h,
-                contextToSend: r.contextToSend
-              },
-              `${F}-${ce.uid}-${ce.comment}`
-            ))
+          /* @__PURE__ */ N.jsxs("div", { className: "card", children: [
+            /* @__PURE__ */ N.jsx("h3", { children: a.suggestedEntriesTitle }),
+            /* @__PURE__ */ N.jsxs("div", { className: "actions", children: [
+              /* @__PURE__ */ N.jsx(
+                je,
+                {
+                  onClick: ie,
+                  disabled: T || Ge.length === 0,
+                  className: "menu_button interactable",
+                  children: a.addAllButton
+                }
+              ),
+              /* @__PURE__ */ N.jsxs(
+                je,
+                {
+                  onClick: () => A(!0),
+                  disabled: T,
+                  className: "menu_button interactable",
+                  title: a.globalReviseTooltip,
+                  children: [
+                    /* @__PURE__ */ N.jsx("i", { className: "fa-solid fa-comments" }),
+                    " ",
+                    a.globalReviseButton
+                  ]
+                }
+              ),
+              /* @__PURE__ */ N.jsx(
+                je,
+                {
+                  onClick: () => S(!0),
+                  disabled: T,
+                  className: "menu_button interactable",
+                  title: a.importEntryTooltip,
+                  children: a.importEntryButton
+                }
+              ),
+              /* @__PURE__ */ N.jsx(je, { onClick: I, disabled: T, className: "menu_button interactable", children: a.resetButton })
+            ] }),
+            /* @__PURE__ */ N.jsxs("div", { children: [
+              Ge.length === 0 && /* @__PURE__ */ N.jsx("p", { children: a.emptyStateMessage }),
+              Ge.map(({ worldName: F, entry: ce }) => /* @__PURE__ */ N.jsx(
+                BA,
+                {
+                  initialWorldName: F,
+                  entry: ce,
+                  allWorldNames: f,
+                  existingEntry: v[F]?.find((ge) => ge.uid === ce.uid),
+                  sessionRegexIds: h.regexIds,
+                  onAdd: K,
+                  onRemove: $,
+                  onContinue: B,
+                  onUpdate: te,
+                  entriesGroupByWorldName: v,
+                  sessionForContext: h,
+                  contextToSend: r.contextToSend
+                },
+                `${F}-${ce.uid}-${ce.comment}`
+              ))
+            ] })
           ] })
-        ] }) })
+        ] })
       ] })
     ] }),
     k && /* @__PURE__ */ N.jsx(
