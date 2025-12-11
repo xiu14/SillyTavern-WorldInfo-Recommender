@@ -187,11 +187,30 @@ export async function runWorldInfoRecommendation({
 
   // console.log("Sending messages:", messages);
 
-  const response = (await globalContext.ConnectionManagerRequestService.sendRequest(
-    profileId,
-    messages,
-    maxResponseToken,
-  )) as ExtractedData;
+  let response: ExtractedData;
+  try {
+    response = (await globalContext.ConnectionManagerRequestService.sendRequest(
+      profileId,
+      messages,
+      maxResponseToken,
+    )) as ExtractedData;
+  } catch (error: any) {
+    console.error('[WorldInfoRecommender] Request failed:', error);
+    
+    // Provide more detailed error information
+    let errorMessage = 'Request failed';
+    if (error.message) {
+      errorMessage += `: ${error.message}`;
+    }
+    if (error.status) {
+      errorMessage += ` (HTTP ${error.status})`;
+    }
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      errorMessage += '. This might be a network or CORS issue. Please check your connection profile settings and ensure the API endpoint is accessible.';
+    }
+    
+    throw new Error(errorMessage);
+  }
 
   // console.log("Received content:", response.content);
 

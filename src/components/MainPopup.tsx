@@ -666,12 +666,22 @@ export const MainPopup: FC = () => {
           st_echo('warning', messages.noResults);
         }
       } catch (error: any) {
-        console.error(error);
+        console.error('[WorldInfoRecommender] Generation error:', error);
+        
+        let friendlyMessage: string;
         const rawMessage = error instanceof Error ? error.message : String(error);
-        const friendlyMessage =
-          rawMessage === messages.requestTimeout
-            ? messages.requestTimeout
-            : `${messages.requestTimeout} (${rawMessage})`;
+        
+        // Check if it's a timeout error
+        if (rawMessage === messages.requestTimeout) {
+          friendlyMessage = messages.requestTimeout;
+        } else if (rawMessage.includes('CORS') || rawMessage.includes('fetch')) {
+          friendlyMessage = `网络请求失败。可能是 CORS 或网络问题。请检查：1) API 端点是否可访问 2) 连接配置是否正确 3) 是否需要代理设置。详细错误: ${rawMessage}`;
+        } else if (rawMessage.includes('timeout') || rawMessage.includes('timed out')) {
+          friendlyMessage = messages.requestTimeout;
+        } else {
+          friendlyMessage = `请求失败: ${rawMessage}`;
+        }
+        
         setLastError(friendlyMessage);
         st_echo('error', friendlyMessage);
       } finally {
@@ -1254,14 +1264,15 @@ export const MainPopup: FC = () => {
                 style={{ marginTop: '5px', width: '100%' }}
               />
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '5px' }}>
-                <STButton
-                  onClick={() => handleGeneration()}
-                  disabled={isGenerating}
-                  className="menu_button interactable"
-                >
-                  {isGenerating ? labels.generatingButton : labels.sendPromptButton}
-                </STButton>
-                {lastError && (
+                {!lastError ? (
+                  <STButton
+                    onClick={() => handleGeneration()}
+                    disabled={isGenerating}
+                    className="menu_button interactable"
+                  >
+                    {isGenerating ? labels.generatingButton : labels.sendPromptButton}
+                  </STButton>
+                ) : (
                   <STButton
                     onClick={() => handleGeneration()}
                     disabled={isGenerating}
@@ -1273,7 +1284,11 @@ export const MainPopup: FC = () => {
                 )}
               </div>
               {lastError && (
-                <p style={{ marginTop: '6px', color: 'var(--red)', fontSize: '0.9em' }}>{lastError}</p>
+                <div style={{ marginTop: '10px', padding: '10px', backgroundColor: 'var(--black30a)', borderRadius: '5px', border: '1px solid var(--red)' }}>
+                  <p style={{ margin: '0', color: 'var(--SmartThemeBodyColor)', fontSize: '0.9em', wordBreak: 'break-word' }}>
+                    <strong style={{ color: 'var(--red)' }}>错误:</strong> {lastError}
+                  </p>
+                </div>
               )}
             </div>
           </div>

@@ -3,7 +3,7 @@ import { WIEntry } from 'sillytavern-utils-lib/types/world-info';
 import { ReviseSession, ReviseState } from '../revise-types.js';
 import { STButton } from 'sillytavern-utils-lib/components/react';
 import { ReviseSessionChat } from './ReviseSessionChat.js';
-import { ExtensionSettings, settingsManager } from '../settings.js';
+import { ExtensionSettings, SupportedLanguage, settingsManager } from '../settings.js';
 import { buildInitialReviseMessages } from '../revise-prompt-builder.js';
 import { st_echo, selected_group, this_chid } from 'sillytavern-utils-lib/config';
 import { BuildPromptOptions } from 'sillytavern-utils-lib';
@@ -11,6 +11,54 @@ import { Session } from '../generate.js';
 
 const globalContext = SillyTavern.getContext();
 const REVISE_SESSIONS_KEY = 'worldInfoRecommender_reviseSessions';
+
+type ReviseManagerLabels = {
+  titleEntry: (name: string) => string;
+  titleGlobal: string;
+  loading: string;
+  noSessions: string;
+  newSessionButton: string;
+  newSessionPopupTitle: string;
+  newSessionDefaultNameEntry: (name: string, date: string) => string;
+  newSessionDefaultNameGlobal: (date: string) => string;
+  deleteConfirmTitle: string;
+  deleteConfirmMessage: string;
+  needProfileWarning: string;
+  createError: (msg: string) => string;
+};
+
+const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
+
+const REVISE_MANAGER_LABELS: Record<SupportedLanguage, ReviseManagerLabels> = {
+  en: {
+    titleEntry: (name: string) => `Revise Sessions for "${name}"`,
+    titleGlobal: 'Global Revise Sessions',
+    loading: 'Loading sessions...',
+    noSessions: 'No sessions found. Create one to get started.',
+    newSessionButton: 'New Session',
+    newSessionPopupTitle: 'New Session Name',
+    newSessionDefaultNameEntry: (name: string, date: string) => `Revise "${name}" - ${date}`,
+    newSessionDefaultNameGlobal: (date: string) => `Global Revise - ${date}`,
+    deleteConfirmTitle: 'Delete Session',
+    deleteConfirmMessage: 'Are you sure? This cannot be undone.',
+    needProfileWarning: 'Please select a connection profile in the main popup first.',
+    createError: (msg: string) => `Failed to create session: ${msg}`,
+  },
+  'zh-CN': {
+    titleEntry: (name: string) => `"${name}" 的修改会话`,
+    titleGlobal: '全局修改会话',
+    loading: '正在加载会话...',
+    noSessions: '未找到会话。请创建一个新会话以开始。',
+    newSessionButton: '新建会话',
+    newSessionPopupTitle: '新会话名称',
+    newSessionDefaultNameEntry: (name: string, date: string) => `修改 "${name}" - ${date}`,
+    newSessionDefaultNameGlobal: (date: string) => `全局修改 - ${date}`,
+    deleteConfirmTitle: '删除会话',
+    deleteConfirmMessage: '确定要删除吗？此操作无法撤销。',
+    needProfileWarning: '请先在主弹窗中选择一个连接配置。',
+    createError: (msg: string) => `创建会话失败：${msg}`,
+  },
+};
 
 interface ReviseSessionManagerProps {
   target: { type: 'global' } | { type: 'entry'; worldName: string; entry: WIEntry };
@@ -33,6 +81,10 @@ export const ReviseSessionManager: FC<ReviseSessionManagerProps> = ({
   allEntries,
   contextToSend,
 }) => {
+  const settings = settingsManager.getSettings();
+  const language: SupportedLanguage = (settings?.language ?? DEFAULT_LANGUAGE) as SupportedLanguage;
+  const labels = REVISE_MANAGER_LABELS[language] ?? REVISE_MANAGER_LABELS[DEFAULT_LANGUAGE];
+
   const [allSessions, setAllSessions] = useState<ReviseSession[]>([]);
   const [activeSession, setActiveSession] = useState<ReviseSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,18 +119,19 @@ export const ReviseSessionManager: FC<ReviseSessionManagerProps> = ({
   };
 
   const handleCreateNewSession = async () => {
-    const name = await globalContext.Popup.show.input(
-      'New Session Name',
+    const dateStr = new Date().toLocaleDateString();
+    const defaultName =
       target.type === 'entry'
-        ? `Revise "${target.entry.comment}" - ${new Date().toLocaleDateString()}`
-        : `Global Revise - ${new Date().toLocaleDateString()}`,
-    );
+        ? labels.newSessionDefaultNameEntry(target.entry.comment, dateStr)
+        : labels.newSessionDefaultNameGlobal(dateStr);
+
+    const name = await globalContext.Popup.show.input(labels.newSessionPopupTitle, defaultName);
     if (!name) return;
 
     try {
       const currentSettings = settingsManager.getSettings();
       if (!currentSettings.profileId) {
-        st_echo('warning', 'Please select a connection profile in the main popup first.');
+        st_echo('warning', labels.needProfileWarning);
         return;
       }
 
@@ -109,7 +162,7 @@ export const ReviseSessionManager: FC<ReviseSessionManagerProps> = ({
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       console.error('Failed to create session:', error);
-      st_echo('error', `Failed to create session: ${message}`);
+      st_echo('error', labels.createError(message));
     }
   };
 
@@ -118,7 +171,7 @@ export const ReviseSessionManager: FC<ReviseSessionManagerProps> = ({
   };
 
   const handleDeleteSession = async (sessionId: string) => {
-    const confirm = await globalContext.Popup.show.confirm('Delete Session', 'Are you sure? This cannot be undone.');
+    const confirm = await globalContext.Popup.show.confirm(labels.deleteConfirmTitle, labels.deleteConfirmMessage);
     if (confirm) {
       const updatedSessions = allSessions.filter((s) => s.id !== sessionId);
       saveAllSessions(updatedSessions);
@@ -211,7 +264,7 @@ export const ReviseSessionManager: FC<ReviseSessionManagerProps> = ({
     );
   }
 
-  const title = target.type === 'entry' ? `Revise Sessions for "${target.entry.comment}"` : 'Global Revise Sessions';
+  const title = target.type === 'entry' ? labels.titleEntry(target.entry.comment) : labels.titleGlobal;
 
   return (
     <div className="revise-session-manager">
@@ -221,11 +274,11 @@ export const ReviseSessionManager: FC<ReviseSessionManagerProps> = ({
       <div className="session-list">
         {isLoading ? (
           <p className="subtle" style={{ textAlign: 'center' }}>
-            Loading sessions...
+            {labels.loading}
           </p>
         ) : filteredSessions.length === 0 ? (
           <p className="subtle" style={{ textAlign: 'center' }}>
-            No sessions found. Create one to get started.
+            {labels.noSessions}
           </p>
         ) : (
           filteredSessions.map((session) => (
@@ -243,7 +296,7 @@ export const ReviseSessionManager: FC<ReviseSessionManagerProps> = ({
       </div>
       <div className="session-actions">
         <STButton onClick={handleCreateNewSession} className="menu_button">
-          <i className="fa-solid fa-plus"></i> New Session
+          <i className="fa-solid fa-plus"></i> {labels.newSessionButton}
         </STButton>
       </div>
     </div>

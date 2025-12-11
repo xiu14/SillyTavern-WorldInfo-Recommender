@@ -18,7 +18,7 @@ import {
   CHAT_HISTORY_PLACEHOLDER_ID,
 } from '../revise-types.js';
 import { makeStructuredRequest } from '../request.js';
-import { settingsManager, PromptEngineeringMode } from '../settings.js';
+import { settingsManager, PromptEngineeringMode, SupportedLanguage } from '../settings.js';
 import { st_echo, st_createWorldInfoEntry, selected_group, this_chid } from 'sillytavern-utils-lib/config';
 import { CompareStatePopup } from './CompareStatePopup.js';
 import { POPUP_TYPE } from 'sillytavern-utils-lib/types/popup';
@@ -29,6 +29,121 @@ import { GlobalStatePopup } from './GlobalStatePopup.js';
 import * as Handlebars from 'handlebars';
 
 const globalContext = SillyTavern.getContext();
+
+type ReviseChatLabels = {
+  editStateTitle: string;
+  saveChanges: string;
+  cancel: string;
+  fieldName: string;
+  fieldTriggers: string;
+  fieldContent: string;
+  viewState: string;
+  editState: string;
+  backTooltip: string;
+  applyTooltip: string;
+  apply: string;
+  viewInitialContext: string;
+  saveAndFork: string;
+  editContextTooltip: string;
+  deleteContextTooltip: string;
+  editAndForkTooltip: string;
+  compareChangesTooltip: string;
+  deleteMessageTooltip: string;
+  regenerate: string;
+  regenerateTooltip: string;
+  cancelRequestTooltip: string;
+  inputPlaceholder: string;
+  editMessageTitle: string;
+  editMessageConfirm: string;
+  deleteMessageTitle: string;
+  deleteInitialConfirm: string;
+  deleteMessageConfirm: string;
+  manualEditContent: string;
+  messageHistoryUpdated: string;
+  requestCancelled: string;
+  requestFailed: (msg: string) => string;
+  noApiSelected: string;
+  profileNoApi: string;
+  usingFallbackApi: (key: string, name: string) => string;
+};
+
+const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
+
+const REVISE_CHAT_LABELS: Record<SupportedLanguage, ReviseChatLabels> = {
+  en: {
+    editStateTitle: 'Editing Entry State',
+    saveChanges: 'Save Changes',
+    cancel: 'Cancel',
+    fieldName: 'Name',
+    fieldTriggers: 'Triggers (comma-separated)',
+    fieldContent: 'Content',
+    viewState: 'View State',
+    editState: 'Edit State',
+    backTooltip: 'Back to sessions',
+    applyTooltip: 'Apply Changes and Close',
+    apply: 'Apply',
+    viewInitialContext: 'View Initial Context',
+    saveAndFork: 'Save & Fork',
+    editContextTooltip: 'Edit Context',
+    deleteContextTooltip: 'Delete Context',
+    editAndForkTooltip: 'Edit and Fork',
+    compareChangesTooltip: 'Compare changes',
+    deleteMessageTooltip: 'Delete Message',
+    regenerate: 'Regenerate',
+    regenerateTooltip: 'Regenerate response',
+    cancelRequestTooltip: 'Cancel Request',
+    inputPlaceholder: 'Type your revision instructions...',
+    editMessageTitle: 'Edit Message',
+    editMessageConfirm:
+      'This will fork the conversation from this point, removing all subsequent messages. Continue?',
+    deleteMessageTitle: 'Delete Message',
+    deleteInitialConfirm: 'Deleting part of the initial context will clear the entire chat history. Are you sure?',
+    deleteMessageConfirm: 'This will delete this message and all subsequent messages. Are you sure?',
+    manualEditContent: 'I made a change manually.',
+    messageHistoryUpdated: 'Message history has been updated.',
+    requestCancelled: 'Request was cancelled.',
+    requestFailed: (msg: string) => `Request failed: ${msg}`,
+    noApiSelected: 'No API selected for this session. Please configure Connection Manager.',
+    profileNoApi: 'Profile has no API configured, using ST default.',
+    usingFallbackApi: (key: string, name: string) => `Using fallback API: ${key} -> ${name}`,
+  },
+  'zh-CN': {
+    editStateTitle: '编辑条目状态',
+    saveChanges: '保存更改',
+    cancel: '取消',
+    fieldName: '名称',
+    fieldTriggers: '触发词（以逗号分隔）',
+    fieldContent: '内容',
+    viewState: '查看状态',
+    editState: '编辑状态',
+    backTooltip: '返回会话列表',
+    applyTooltip: '应用更改并关闭',
+    apply: '应用',
+    viewInitialContext: '查看初始上下文',
+    saveAndFork: '保存并分叉',
+    editContextTooltip: '编辑上下文',
+    deleteContextTooltip: '删除上下文',
+    editAndForkTooltip: '编辑并分叉',
+    compareChangesTooltip: '对比更改',
+    deleteMessageTooltip: '删除消息',
+    regenerate: '重新生成',
+    regenerateTooltip: '重新生成回复',
+    cancelRequestTooltip: '取消请求',
+    inputPlaceholder: '输入修改指令...',
+    editMessageTitle: '编辑消息',
+    editMessageConfirm: '这将从此点分叉对话，移除所有后续消息。是否继续？',
+    deleteMessageTitle: '删除消息',
+    deleteInitialConfirm: '删除初始上下文的一部分将清空整个聊天记录。确定吗？',
+    deleteMessageConfirm: '这将删除此消息及所有后续消息。确定吗？',
+    manualEditContent: '我手动进行了修改。',
+    messageHistoryUpdated: '消息记录已更新。',
+    requestCancelled: '请求已取消。',
+    requestFailed: (msg: string) => `请求失败：${msg}`,
+    noApiSelected: '此会话未选择 API。请配置连接管理器。',
+    profileNoApi: '配置文件未配置 API，使用 ST 默认设置。',
+    usingFallbackApi: (key: string, name: string) => `使用备用 API：${key} -> ${name}`,
+  },
+};
 
 const calculateNewState = (prevState: WIEntry, response: EntryRevisionResponse): WIEntry => {
   const newState = structuredClone(prevState);
@@ -98,6 +213,10 @@ const EditStatePopup: FC<{
   onSave: (newState: WIEntry) => void;
   onClose: () => void;
 }> = ({ initialState, onSave, onClose }) => {
+  const settings = settingsManager.getSettings();
+  const language: SupportedLanguage = (settings?.language ?? DEFAULT_LANGUAGE) as SupportedLanguage;
+  const labels = REVISE_CHAT_LABELS[language] ?? REVISE_CHAT_LABELS[DEFAULT_LANGUAGE];
+
   const [name, setName] = useState(initialState.comment);
   const [triggers, setTriggers] = useState(initialState.key.join(', '));
   const [content, setContent] = useState(initialState.content);
@@ -118,27 +237,27 @@ const EditStatePopup: FC<{
   return (
     <div className="current-state-popup">
       <div className="popup_header">
-        <h3>Editing Entry State</h3>
+        <h3>{labels.editStateTitle}</h3>
         <div className="popup_header_buttons">
           <STButton onClick={handleSave}>
-            <i className="fa-solid fa-check"></i> Save Changes
+            <i className="fa-solid fa-check"></i> {labels.saveChanges}
           </STButton>
           <STButton onClick={onClose} className="danger_button">
-            <i className="fa-solid fa-times"></i> Cancel
+            <i className="fa-solid fa-times"></i> {labels.cancel}
           </STButton>
         </div>
       </div>
       <div className="current-state-content">
         <div className="state-field">
-          <label>Name</label>
+          <label>{labels.fieldName}</label>
           <STInput type="text" value={name} onInput={(e) => setName(e.currentTarget.value)} />
         </div>
         <div className="state-field">
-          <label>Triggers (comma-separated)</label>
+          <label>{labels.fieldTriggers}</label>
           <STTextarea value={triggers} onChange={(e) => setTriggers(e.target.value)} rows={2} />
         </div>
         <div className="state-field">
-          <label>Content</label>
+          <label>{labels.fieldContent}</label>
           <STTextarea value={content} onChange={(e) => setContent(e.target.value)} rows={8} />
         </div>
       </div>
@@ -163,6 +282,10 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
   initialState,
   chatContextOptions,
 }) => {
+  const settings = settingsManager.getSettings();
+  const language: SupportedLanguage = (settings?.language ?? DEFAULT_LANGUAGE) as SupportedLanguage;
+  const labels = REVISE_CHAT_LABELS[language] ?? REVISE_CHAT_LABELS[DEFAULT_LANGUAGE];
+
   const [messages, setMessages] = useState<ReviseMessage[]>(session.messages);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -289,7 +412,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
     ) => {
       const settings = settingsManager.getSettings();
       if (!session.profileId) {
-        st_echo('warning', 'Please select a connection profile for this session.');
+        st_echo('warning', labels.noApiSelected);
         return;
       }
       abortControllerRef.current = new AbortController();
@@ -304,25 +427,25 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
         );
         // Try to get API from profile, fall back to current ST API if not set
         let selectedApi: string | undefined;
-        
+
         if (profile?.api && globalContext.CONNECT_API_MAP[profile.api]) {
           selectedApi = globalContext.CONNECT_API_MAP[profile.api].selected;
         } else {
           // Fallback: use SillyTavern's currently active API
-          console.warn(`[WorldInfoRecommender] Profile has no API configured, using ST default.`);
-          
+          console.warn(`[WorldInfoRecommender] ${labels.profileNoApi}`);
+
           // Try to find the active API by checking which one is currently selected
           for (const [apiKey, apiValue] of Object.entries(globalContext.CONNECT_API_MAP)) {
             if (apiValue && apiValue.selected) {
               selectedApi = apiValue.selected;
-              console.log(`[WorldInfoRecommender] Using fallback API: ${apiKey} -> ${selectedApi}`);
+              console.log(`[WorldInfoRecommender] ${labels.usingFallbackApi(apiKey, selectedApi)}`);
               break;
             }
           }
         }
-        
+
         if (!selectedApi) {
-          st_echo('warning', 'No API selected for this session. Please configure Connection Manager.');
+          st_echo('warning', labels.noApiSelected);
           return;
         }
 
@@ -416,10 +539,10 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
         onSessionUpdate({ ...session, messages: finalMessages });
       } catch (error: any) {
         if (error.name === 'AbortError') {
-          st_echo('info', 'Request was cancelled.');
+          st_echo('info', labels.requestCancelled);
         } else {
           console.error('Revise request failed:', error);
-          st_echo('error', `Request failed: ${error.message}`);
+          st_echo('error', labels.requestFailed(error.message));
         }
         revertUpdate();
       } finally {
@@ -513,10 +636,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
     const messageIndex = messages.findIndex((m) => m.id === editingMessageId);
     if (messageIndex === -1) return;
 
-    const confirm = await globalContext.Popup.show.confirm(
-      'Edit Message',
-      'This will fork the conversation from this point, removing all subsequent messages. Continue?',
-    );
+    const confirm = await globalContext.Popup.show.confirm(labels.editMessageTitle, labels.editMessageConfirm);
     if (!confirm) return;
 
     const previousMessages = messages;
@@ -541,10 +661,8 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
     const isInitial = !!messages[messageIndex].isInitial;
 
     const confirm = await globalContext.Popup.show.confirm(
-      'Delete Message',
-      isInitial
-        ? 'Deleting part of the initial context will clear the entire chat history. Are you sure?'
-        : 'This will delete this message and all subsequent messages. Are you sure?',
+      labels.deleteMessageTitle,
+      isInitial ? labels.deleteInitialConfirm : labels.deleteMessageConfirm,
     );
     if (!confirm) return;
 
@@ -554,7 +672,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
 
     setMessages(newMessages);
     onSessionUpdate({ ...session, messages: newMessages });
-    st_echo('info', 'Message history has been updated.');
+    st_echo('info', labels.messageHistoryUpdated);
   };
 
   const handleSaveStateEdit = (newState: ReviseState) => {
@@ -567,7 +685,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
     const userEditMessage: ReviseMessage = {
       id: `msg-${Date.now()}-user-edit`,
       role: 'user',
-      content: 'I made a change manually.',
+      content: labels.manualEditContent,
       stateSnapshot: newState,
     };
 
@@ -610,26 +728,26 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
             <option value="json">JSON</option>
             <option value="xml">XML</option>
           </select>
-          <STButton onClick={() => setIsCurrentStateOpen(true)} title="View current state">
-            View State
+          <STButton onClick={() => setIsCurrentStateOpen(true)} title={labels.viewState}>
+            {labels.viewState}
           </STButton>
           {session.type === 'entry' && (
-            <STButton onClick={() => setIsEditingState(true)} title="Manually edit the current state">
-              Edit State
+            <STButton onClick={() => setIsEditingState(true)} title={labels.editState}>
+              {labels.editState}
             </STButton>
           )}
-          <STButton onClick={onBack} title="Back to sessions">
+          <STButton onClick={onBack} title={labels.backTooltip}>
             <i className="fa-solid fa-arrow-left"></i>
           </STButton>
-          <STButton onClick={handleApply} title="Apply Changes and Close">
-            <i className="fa-solid fa-check"></i> Apply
+          <STButton onClick={handleApply} title={labels.applyTooltip}>
+            <i className="fa-solid fa-check"></i> {labels.apply}
           </STButton>
         </div>
       </div>
       <div className="chat-messages">
         {initialMsgs.length > 0 && (
           <details className="initial-messages-container">
-            <summary>View Initial Context</summary>
+            <summary>{labels.viewInitialContext}</summary>
             <div className="initial-messages-content">
               {initialMsgs.map((msg) =>
                 editingMessageId === msg.id ? (
@@ -637,10 +755,10 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
                     <STTextarea value={editingContent} onChange={(e) => setEditingContent(e.target.value)} rows={5} />
                     <div className="editor-buttons">
                       <STButton onClick={handleSaveEdit}>
-                        <i className="fa-solid fa-check"></i> Save & Fork
+                        <i className="fa-solid fa-check"></i> {labels.saveAndFork}
                       </STButton>
                       <STButton onClick={handleCancelEdit}>
-                        <i className="fa-solid fa-times"></i> Cancel
+                        <i className="fa-solid fa-times"></i> {labels.cancel}
                       </STButton>
                     </div>
                   </div>
@@ -654,14 +772,14 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
                         <STButton
                           className="message-action-button"
                           onClick={() => handleStartEdit(msg)}
-                          title="Edit Context"
+                          title={labels.editContextTooltip}
                         >
                           <i className="fa-solid fa-pencil"></i>
                         </STButton>
                         <STButton
                           className="message-action-button danger_button"
                           onClick={() => handleDeleteMessage(msg.id)}
-                          title="Delete Context"
+                          title={labels.deleteContextTooltip}
                         >
                           <i className="fa-solid fa-trash-can"></i>
                         </STButton>
@@ -679,10 +797,10 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
               <STTextarea value={editingContent} onChange={(e) => setEditingContent(e.target.value)} rows={3} />
               <div className="editor-buttons">
                 <STButton onClick={handleSaveEdit}>
-                  <i className="fa-solid fa-check"></i> Save & Fork
+                  <i className="fa-solid fa-check"></i> {labels.saveAndFork}
                 </STButton>
                 <STButton onClick={handleCancelEdit}>
-                  <i className="fa-solid fa-times"></i> Cancel
+                  <i className="fa-solid fa-times"></i> {labels.cancel}
                 </STButton>
               </div>
             </div>
@@ -693,7 +811,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
                   <STButton
                     className="message-action-button"
                     onClick={() => handleStartEdit(msg)}
-                    title="Edit and Fork"
+                    title={labels.editAndForkTooltip}
                   >
                     <i className="fa-solid fa-pencil"></i>
                   </STButton>
@@ -702,7 +820,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
                   <STButton
                     className="message-action-button"
                     onClick={() => handleShowDiff(msg.id)}
-                    title="Compare changes"
+                    title={labels.compareChangesTooltip}
                   >
                     <i className="fa-solid fa-code-compare"></i>
                   </STButton>
@@ -711,7 +829,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
                   <STButton
                     className="message-action-button danger_button"
                     onClick={() => handleDeleteMessage(msg.id)}
-                    title="Delete Message"
+                    title={labels.deleteMessageTooltip}
                   >
                     <i className="fa-solid fa-trash-can"></i>
                   </STButton>
@@ -725,8 +843,8 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
         )}
         {chatMsgs.length > 0 && !isLoading && (
           <div className="regenerate-button-wrapper">
-            <STButton onClick={handleRegenerate} title="Regenerate response">
-              <i className="fa-solid fa-rotate-right"></i> Regenerate
+            <STButton onClick={handleRegenerate} title={labels.regenerateTooltip}>
+              <i className="fa-solid fa-rotate-right"></i> {labels.regenerate}
             </STButton>
           </div>
         )}
@@ -738,7 +856,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
             <STButton
               onClick={() => abortControllerRef.current?.abort()}
               className="danger_button"
-              title="Cancel Request"
+              title={labels.cancelRequestTooltip}
             >
               <i className="fa-solid fa-stop"></i>
             </STButton>
@@ -750,7 +868,7 @@ export const ReviseSessionChat: FC<ReviseSessionChatProps> = ({
         <STTextarea
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Type your revision instructions..."
+          placeholder={labels.inputPlaceholder}
           rows={3}
           disabled={isLoading || !!editingMessageId}
           onKeyDown={(e) => {
