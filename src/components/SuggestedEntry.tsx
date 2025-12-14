@@ -228,7 +228,7 @@ export const SuggestedEntry: FC<SuggestedEntryProps> = ({
           </STButton>
         </div>
         <h4 className="comment">{entry.comment}</h4>
-        <div className="key">{entry.key.join(', ')}</div>
+        <div className="key">{(entry.key || []).join(', ')}</div>
         <p className="content" dangerouslySetInnerHTML={{ __html: converter.makeHtml(entry.content ?? '') }}></p>
         <div className="continue-prompt-section" style={{ marginTop: '10px' }}>
           <STTextarea

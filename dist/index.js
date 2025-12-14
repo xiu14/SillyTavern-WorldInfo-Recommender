@@ -1038,7 +1038,7 @@ function w2() {
   function F(e) {
     Ce.current === e && (ne(fe), ne(Ce)), we.current === e && (ne(we), ks._currentValue = K);
   }
-  var de = Object.prototype.hasOwnProperty, ge = n.unstable_scheduleCallback, me = n.unstable_cancelCallback, he = n.unstable_shouldYield, Ee = n.unstable_requestPaint, Ne = n.unstable_now, Be = n.unstable_getCurrentPriorityLevel, ve = n.unstable_ImmediatePriority, te = n.unstable_UserBlockingPriority, ue = n.unstable_NormalPriority, ye = n.unstable_LowPriority, _e = n.unstable_IdlePriority, Oe = n.log, ut = n.unstable_setDisableYieldValue, Ot = null, et = null;
+  var de = Object.prototype.hasOwnProperty, ve = n.unstable_scheduleCallback, me = n.unstable_cancelCallback, he = n.unstable_shouldYield, Ee = n.unstable_requestPaint, Ne = n.unstable_now, Be = n.unstable_getCurrentPriorityLevel, ge = n.unstable_ImmediatePriority, te = n.unstable_UserBlockingPriority, ue = n.unstable_NormalPriority, ye = n.unstable_LowPriority, _e = n.unstable_IdlePriority, Oe = n.log, ut = n.unstable_setDisableYieldValue, Ot = null, et = null;
   function wn(e) {
     if (typeof Oe == "function" && ut(e), et && typeof et.setStrictMode == "function")
       try {
@@ -7731,7 +7731,7 @@ Error generating stack: ` + i.message + `
     o !== null && o.delete(t), lg(e, i);
   }
   function n1(e, t) {
-    return ge(e, t);
+    return ve(e, t);
   }
   var nu = null, vi = null, _d = !1, ru = !1, bd = !1, Sa = 0;
   function Xn(e) {
@@ -7802,7 +7802,7 @@ Error generating stack: ` + i.message + `
         default:
           i = ue;
       }
-      return o = fg.bind(null, e), i = ge(i, o), e.callbackPriority = t, e.callbackNode = i, t;
+      return o = fg.bind(null, e), i = ve(i, o), e.callbackPriority = t, e.callbackNode = i, t;
     }
     return o !== null && o !== null && me(o), e.callbackPriority = 2, e.callbackNode = null, 2;
   }
@@ -7825,8 +7825,8 @@ Error generating stack: ` + i.message + `
   }
   function a1() {
     p1(function() {
-      (Je & 6) !== 0 ? ge(
-        ve,
+      (Je & 6) !== 0 ? ve(
+        ge,
         r1
       ) : cg();
     });
@@ -9915,7 +9915,7 @@ Error generating stack: ` + i.message + `
         return 8;
       case "message":
         switch (Be()) {
-          case ve:
+          case ge:
             return 2;
           case te:
             return 8;
@@ -11707,7 +11707,7 @@ ${te.extra.title}`), {
       };
     })
   );
-  const $e = be.map((te) => X1 ? `${te.name}: ${te.mes}` : te.mes).reverse(), { worldInfoString: Ge, worldInfoBefore: F, worldInfoAfter: de, worldInfoExamples: ge, worldInfoDepth: me, anBefore: he, anAfter: Ee } = v ? {
+  const $e = be.map((te) => X1 ? `${te.name}: ${te.mes}` : te.mes).reverse(), { worldInfoString: Ge, worldInfoBefore: F, worldInfoAfter: de, worldInfoExamples: ve, worldInfoDepth: me, anBefore: he, anAfter: Ee } = v ? {
     worldInfoString: "",
     worldInfoBefore: "",
     worldInfoAfter: "",
@@ -11716,7 +11716,7 @@ ${te.extra.title}`), {
     anBefore: [],
     anAfter: []
   } : await M.getWorldInfoPrompt($e, ce, !1);
-  for (const te of ge) {
+  for (const te of ve) {
     const ue = te.content;
     if (ue.length === 0)
       continue;
@@ -11932,7 +11932,7 @@ ${te.extra.title}`), {
       }
     }
   }
-  let ve = -1;
+  let ge = -1;
   if (!g) {
     const te = b3();
     if (te.prompt) {
@@ -11940,19 +11940,19 @@ ${te.extra.title}`), {
       const ue = { role: Ca(te.role), content: te.prompt };
       switch (te.position) {
         case Ea.IN_PROMPT:
-          fe.insert(1, ue), ve = 1;
+          fe.insert(1, ue), ge = 1;
           break;
         case Ea.IN_CHAT:
-          ve = fe.getMessages().length - te.depth, fe.insert(ve, ue);
+          ge = fe.getMessages().length - te.depth, fe.insert(ge, ue);
           break;
         case Ea.BEFORE_PROMPT:
-          fe.addFront(ue), ve = 0;
+          fe.addFront(ue), ge = 0;
           break;
       }
     }
   }
-  return ve >= 0 && (he.length > 0 && (fe.insert(ve, { role: "system", content: he.join(`
-`) }), ve++), Ee.length > 0 && fe.insert(ve + 1, { role: "system", content: Ee.join(`
+  return ge >= 0 && (he.length > 0 && (fe.insert(ge, { role: "system", content: he.join(`
+`) }), ge++), Ee.length > 0 && fe.insert(ge + 1, { role: "system", content: Ee.join(`
 `) })), { result: fe.getMessages(), warnings: ne };
 }
 /**!
@@ -20879,9 +20879,9 @@ function rw() {
                 var $e = ee[be].firstChild.innerHTML.trim(), Ge = ee[be].firstChild.getAttribute("data-language") || "";
                 if (Ge === "")
                   for (var F = ee[be].firstChild.className.split(" "), de = 0; de < F.length; ++de) {
-                    var ge = F[de].match(/^language-(.+)$/);
-                    if (ge !== null) {
-                      Ge = ge[1];
+                    var ve = F[de].match(/^language-(.+)$/);
+                    if (ve !== null) {
+                      Ge = ve[1];
                       break;
                     }
                   }
@@ -25546,8 +25546,8 @@ const NA = ({ originalContent: n, newContent: r }) => {
       const $e = st.getSettings();
       let Ge = "";
       if (n.type === "global") {
-        const F = $e.prompts.reviseGlobalStateUpdate?.content, de = $e.prompts.reviseGlobalStateUpdateAddedModified?.content, ge = $e.prompts.reviseGlobalStateUpdateRemoved?.content;
-        if (!F || !de || !ge) return ee;
+        const F = $e.prompts.reviseGlobalStateUpdate?.content, de = $e.prompts.reviseGlobalStateUpdateAddedModified?.content, ve = $e.prompts.reviseGlobalStateUpdateRemoved?.content;
+        if (!F || !de || !ve) return ee;
         const me = be || {}, he = we || {}, Ee = /* @__PURE__ */ new Map();
         Object.entries(me).forEach(([ye, _e]) => {
           _e.forEach((Oe) => {
@@ -25560,7 +25560,7 @@ const NA = ({ originalContent: n, newContent: r }) => {
             Ne.set(`${ye}::${Oe.uid}`, Oe);
           });
         });
-        const Be = {}, ve = [];
+        const Be = {}, ge = [];
         if (Ne.forEach((ye, _e) => {
           const [Oe] = _e.split("::"), ut = Ee.get(_e);
           let Ot = !1;
@@ -25574,13 +25574,13 @@ const NA = ({ originalContent: n, newContent: r }) => {
         }), Ee.forEach((ye, _e) => {
           if (!Ne.has(_e)) {
             const [Oe] = _e.split("::");
-            ve.push({ worldName: Oe, comment: ye.comment });
+            ge.push({ worldName: Oe, comment: ye.comment });
           }
-        }), Object.keys(Be).length === 0 && ve.length === 0)
+        }), Object.keys(Be).length === 0 && ge.length === 0)
           return ee;
         const te = Sn.compile(de, { noEscape: !0 })({
           changedLorebooks: Be
-        }), ue = Sn.compile(ge, { noEscape: !0 })({ removedEntries: ve });
+        }), ue = Sn.compile(ve, { noEscape: !0 })({ removedEntries: ge });
         Ge = Sn.compile(F, { noEscape: !0 })({
           addedModifiedContent: te,
           removedContent: ue
@@ -25618,25 +25618,25 @@ Content: ${F.content}`;
         const F = [], de = Xr.extensionSettings.connectionManager?.profiles?.find(
           (te) => te.id === n.profileId
         );
-        let ge;
+        let ve;
         if (de?.api && Xr.CONNECT_API_MAP[de.api])
-          ge = Xr.CONNECT_API_MAP[de.api].selected;
+          ve = Xr.CONNECT_API_MAP[de.api].selected;
         else {
           console.warn(`[WorldInfoRecommender] ${f.profileNoApi}`);
           for (const [te, ue] of Object.entries(Xr.CONNECT_API_MAP))
             if (ue && ue.selected) {
-              ge = ue.selected, console.log(`[WorldInfoRecommender] ${f.usingFallbackApi(te, ge)}`);
+              ve = ue.selected, console.log(`[WorldInfoRecommender] ${f.usingFallbackApi(te, ve)}`);
               break;
             }
         }
-        if (!ge) {
+        if (!ve) {
           Te("warning", f.noApiSelected);
           return;
         }
         for (const te of ee)
           if (te.id === Bf) {
             if (un === void 0 && !Kt) continue;
-            const ue = await E0(ge, c);
+            const ue = await E0(ve, c);
             ue.warnings?.length && ue.warnings.forEach((ye) => Te("warning", ye)), F.push(...ue.result);
           } else
             F.push(te);
@@ -25695,8 +25695,8 @@ Content: ${te.content}`;
           content: Ne,
           stateSnapshot: Ee
         };
-        let ve = [...ee, Be];
-        ve = z(ve, Ee, me), v(ve), a({ ...n, messages: ve });
+        let ge = [...ee, Be];
+        ge = z(ge, Ee, me), v(ge), a({ ...n, messages: ge });
       } catch (F) {
         F.name === "AbortError" ? Te("info", f.requestCancelled) : (console.error("Revise request failed:", F), Te("error", f.requestFailed(F.message))), $e();
       } finally {
@@ -26346,7 +26346,7 @@ const rl = SillyTavern.getContext(), t0 = "worldInfoRecommender_reviseSessions",
         )
       ] }),
       /* @__PURE__ */ N.jsx("h4", { className: "comment", children: r.comment }),
-      /* @__PURE__ */ N.jsx("div", { className: "key", children: r.key.join(", ") }),
+      /* @__PURE__ */ N.jsx("div", { className: "key", children: (r.key || []).join(", ") }),
       /* @__PURE__ */ N.jsx("p", { className: "content", dangerouslySetInnerHTML: { __html: IA.makeHtml(r.content ?? "") } }),
       /* @__PURE__ */ N.jsx("div", { className: "continue-prompt-section", style: { marginTop: "10px" }, children: /* @__PURE__ */ N.jsx(
         br,
@@ -26677,56 +26677,68 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
   }), [f, g] = ae.useState([]), [v, E] = ae.useState({}), [b, _] = ae.useState([]), [p, C] = ae.useState(!0), [T, j] = ae.useState(!1), [k, P] = ae.useState(!1), [l, S] = ae.useState(!1), [w, A] = ae.useState(!1), [O, L] = ae.useState(null), M = ae.useRef(null), z = ae.useRef(null), H = ae.useMemo(() => al() ?? "_global", [un, Kt]);
   ae.useEffect(() => {
     (async () => {
-      C(!0), E({}), g([]), _([]);
-      const de = al(), ge = `worldInfoRecommend_${H}`, me = JSON.parse(localStorage.getItem(ge) ?? "{}"), he = {
-        suggestedEntries: me.suggestedEntries ?? {},
-        blackListedEntries: me.blackListedEntries ?? [],
-        selectedWorldNames: me.selectedWorldNames ?? [],
-        selectedEntryUids: me.selectedEntryUids ?? {},
-        regexIds: me.regexIds ?? {}
-      };
-      let Ee = {};
-      if (de)
-        if (Kt) {
-          const ve = await cl(["chat", "persona", "global"]);
-          ve && (Ee = ve);
-          const te = Fg.find((ue) => ue.id === Kt);
-          if (te)
-            for (const ue of te.members) {
-              const ye = Hn.characters.findIndex((_e) => _e.avatar === ue);
-              if (ye !== -1) {
-                const _e = await cl(["character"], !0, ye);
-                _e && (Ee = { ...Ee, ..._e });
+      try {
+        C(!0), E({}), g([]), _([]);
+        const de = al(), ve = `worldInfoRecommend_${H}`;
+        let me = {};
+        try {
+          me = JSON.parse(localStorage.getItem(ve) ?? "{}");
+        } catch (ge) {
+          console.error("Failed to parse saved session:", ge);
+        }
+        const he = {
+          suggestedEntries: me.suggestedEntries ?? {},
+          blackListedEntries: me.blackListedEntries ?? [],
+          selectedWorldNames: me.selectedWorldNames ?? [],
+          selectedEntryUids: me.selectedEntryUids ?? {},
+          regexIds: me.regexIds ?? {}
+        };
+        let Ee = {};
+        if (de)
+          if (Kt) {
+            const ge = await cl(["chat", "persona", "global"], !0);
+            ge && (Ee = ge);
+            const te = Fg.find((ue) => ue.id === Kt);
+            if (te)
+              for (const ue of te.members) {
+                const ye = Hn.characters.findIndex((_e) => _e.avatar === ue);
+                if (ye !== -1) {
+                  const _e = await cl(["character"], !0, ye);
+                  _e && (Ee = { ...Ee, ..._e });
+                }
               }
-            }
-        } else
-          Ee = await cl(["all"], !0, un);
-      else
-        for (const ve of e2) {
-          const te = await Hn.loadWorldInfo(ve);
-          te && (Ee[ve] = Object.values(te.entries));
-        }
-      E(Ee);
-      const Ne = Object.keys(Ee);
-      g(Ne), he.selectedWorldNames.length === 0 && H !== "_global" ? he.selectedWorldNames = [...Ne] : he.selectedWorldNames = he.selectedWorldNames.filter(
-        (ve) => Ne.includes(ve)
-      );
-      const Be = {};
-      if (he.selectedEntryUids) {
-        for (const [ve, te] of Object.entries(he.selectedEntryUids))
-          if (Ee[ve]) {
-            const ue = new Set(Ee[ve].map((_e) => _e.uid)), ye = te.filter((_e) => ue.has(_e));
-            ye.length > 0 && (Be[ve] = ye);
+          } else
+            Ee = await cl(["all"], !0, un);
+        else
+          for (const ge of e2) {
+            const te = await Hn.loadWorldInfo(ge);
+            te && (Ee[ge] = Object.values(te.entries));
           }
-      }
-      if (he.selectedEntryUids = Be, m(he), Kt) {
-        const ve = Fg.find((te) => te.id === Kt);
-        if (ve?.generation_mode === 0) {
-          const te = ve.members.map((ue) => Hn.characters.find((ye) => ye.avatar === ue)).filter((ue) => !!ue);
-          _(te);
+        E(Ee);
+        const Ne = Object.keys(Ee);
+        g(Ne), he.selectedWorldNames.length === 0 && H !== "_global" ? he.selectedWorldNames = [...Ne] : he.selectedWorldNames = he.selectedWorldNames.filter(
+          (ge) => Ne.includes(ge)
+        );
+        const Be = {};
+        if (he.selectedEntryUids) {
+          for (const [ge, te] of Object.entries(he.selectedEntryUids))
+            if (Ee[ge]) {
+              const ue = new Set(Ee[ge].map((_e) => _e.uid)), ye = te.filter((_e) => ue.has(_e));
+              ye.length > 0 && (Be[ge] = ye);
+            }
         }
+        if (he.selectedEntryUids = Be, m(he), Kt) {
+          const ge = Fg.find((te) => te.id === Kt);
+          if (ge?.generation_mode === 0) {
+            const te = ge.members.map((ue) => Hn.characters.find((ye) => ye.avatar === ue)).filter((ue) => !!ue);
+            _(te);
+          }
+        }
+      } catch (de) {
+        console.error("Failed to load data:", de), Te("error", "Failed to load World Info Recommender data. Check console for details.");
+      } finally {
+        C(!1);
       }
-      C(!1);
     })();
   }, [H]), ae.useEffect(() => {
     if (p) return;
@@ -26738,26 +26750,26 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
   }, G = (F, de) => {
     st.getSettings().contextToSend[F] = de, st.saveSettings(), n();
   }, Q = () => {
-    const F = Mi.indexOf(s), de = Mi[(F + 1) % Mi.length], ge = l0[de], me = c0[de]?.languageSwitched ?? u.languageSwitched;
-    Z("language", de), Te("info", me(ge));
+    const F = Mi.indexOf(s), de = Mi[(F + 1) % Mi.length], ve = l0[de], me = c0[de]?.languageSwitched ?? u.languageSwitched;
+    Z("language", de), Te("info", me(ve));
   }, R = ae.useCallback(
-    async (F, de, ge = !1) => {
+    async (F, de, ve = !1) => {
       const me = structuredClone(v);
       me[de] || (me[de] = []);
       const he = me[de].find((Be) => Be.uid === F.uid), Ee = !!he;
       let Ne;
       if (Ee) {
-        const Be = (F.content || "") !== (he.content || ""), ve = (F.comment || "") !== (he.comment || ""), te = (F.key || []).slice().sort().join(",") !== (he.key || []).slice().sort().join(",");
-        if (!Be && !ve && !te)
+        const Be = (F.content || "") !== (he.content || ""), ge = (F.comment || "") !== (he.comment || ""), te = (F.key || []).slice().sort().join(",") !== (he.key || []).slice().sort().join(",");
+        if (!Be && !ge && !te)
           return "unchanged";
         Ne = he;
       } else {
-        const Be = { entries: Object.fromEntries(me[de].map((te) => [te.uid, te])) }, ve = ml(de, Be);
-        if (!ve) throw new Error("Failed to create new World Info entry.");
-        Ne = ve, me[de].push(Ne);
+        const Be = { entries: Object.fromEntries(me[de].map((te) => [te.uid, te])) }, ge = ml(de, Be);
+        if (!ge) throw new Error("Failed to create new World Info entry.");
+        Ne = ge, me[de].push(Ne);
       }
-      if (Object.assign(Ne, { key: F.key, content: F.content, comment: F.comment }), E(me), !ge) {
-        const Be = { entries: Object.fromEntries(me[de].map((ve) => [ve.uid, ve])) };
+      if (Object.assign(Ne, { key: F.key, content: F.content, comment: F.comment }), E(me), !ve) {
+        const Be = { entries: Object.fromEntries(me[de].map((ge) => [ge.uid, ge])) };
         await Hn.saveWorldInfo(de, Be), Hn.reloadWorldInfoEditor(de, !0);
       }
       return Ee ? "updated" : "added";
@@ -26771,15 +26783,15 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
         return Te("warning", u.needPrompt);
       L(null), j(!0);
       try {
-        const ge = Hn.extensionSettings.connectionManager?.profiles?.find(
+        const ve = Hn.extensionSettings.connectionManager?.profiles?.find(
           (te) => te.id === r.profileId
         );
-        if (!ge) throw new Error("Connection profile not found.");
+        if (!ve) throw new Error("Connection profile not found.");
         const me = al(), he = {
-          presetName: ge.preset,
-          contextName: ge.context,
-          instructName: ge.instruct,
-          syspromptName: ge.sysprompt,
+          presetName: ve.preset,
+          contextName: ve.context,
+          instructName: ve.instruct,
+          syspromptName: ve.sysprompt,
           ignoreCharacterFields: !r.contextToSend.charCard,
           ignoreWorldInfo: !0,
           ignoreAuthorNote: !r.contextToSend.authorNote,
@@ -26812,7 +26824,7 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
         r.contextToSend.stDescription || delete Ee.stDescription, (!r.contextToSend.worldInfo || h.selectedWorldNames.length === 0) && delete Ee.currentLorebooks;
         const Ne = Object.values(h.suggestedEntries).some((te) => te.length > 0);
         (!r.contextToSend.suggestedEntries || !Ne) && delete Ee.suggestedLorebooks, h.blackListedEntries.length === 0 && delete Ee.blackListedEntries;
-        const Be = F ? { worldName: F.worldName, entry: F.entry, mode: F.mode } : void 0, ve = await new Promise((te, ue) => {
+        const Be = F ? { worldName: F.worldName, entry: F.entry, mode: F.mode } : void 0, ge = await new Promise((te, ue) => {
           const ye = window.setTimeout(() => {
             ue(new Error(u.requestTimeout));
           }, UA);
@@ -26832,8 +26844,8 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
             clearTimeout(ye), ue(_e);
           });
         });
-        Object.keys(ve).length > 0 ? m(F ? (te) => {
-          const ue = structuredClone(te.suggestedEntries), ye = F.worldName, _e = ve[ye]?.[0];
+        Object.keys(ge).length > 0 ? m(F ? (te) => {
+          const ue = structuredClone(te.suggestedEntries), ye = F.worldName, _e = ge[ye]?.[0];
           if (ue[ye] && _e) {
             const Oe = ue[ye].findIndex(
               (ut) => ut.uid === F.entry.uid && ut.comment === F.entry.comment
@@ -26843,17 +26855,17 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
           return { ...te, suggestedEntries: ue };
         } : (te) => {
           const ue = structuredClone(te.suggestedEntries);
-          for (const [ye, _e] of Object.entries(ve)) {
+          for (const [ye, _e] of Object.entries(ge)) {
             ue[ye] || (ue[ye] = []);
             for (const Oe of _e)
               ue[ye].some((ut) => ut.uid === Oe.uid && ut.comment === Oe.comment) || ue[ye].push(Oe);
           }
           return { ...te, suggestedEntries: ue };
         }) : Te("warning", u.noResults);
-      } catch (ge) {
-        console.error("[WorldInfoRecommender] Generation error:", ge);
+      } catch (ve) {
+        console.error("[WorldInfoRecommender] Generation error:", ve);
         let me;
-        const he = ge instanceof Error ? ge.message : String(ge);
+        const he = ve instanceof Error ? ve.message : String(ve);
         he === u.requestTimeout ? me = u.requestTimeout : he.includes("CORS") || he.includes("fetch") ? me = `网络请求失败。可能是 CORS 或网络问题。请检查：1) API 端点是否可访问 2) 连接配置是否正确 3) 是否需要代理设置。详细错误: ${he}` : he.includes("timeout") || he.includes("timed out") ? me = u.requestTimeout : me = `请求失败: ${he}`, L(me), Te("error", me);
       } finally {
         j(!1);
@@ -26861,9 +26873,9 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
     },
     [r, h, v, u]
   ), K = ae.useCallback(
-    async (F, de, ge) => {
+    async (F, de, ve) => {
       try {
-        const me = await R(F, ge);
+        const me = await R(F, ve);
         me === "unchanged" ? Te("info", u.entryUnchanged(F.comment)) : Te("success", me === "added" ? u.entryAdded : u.entryUpdated), m((he) => {
           const Ee = { ...he.suggestedEntries };
           return Ee[de] && (Ee[de] = Ee[de].filter(
@@ -26885,41 +26897,41 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
       u.addAllConfirmMessage(F)
     )) return;
     j(!0);
-    let ge = 0, me = 0, he = 0;
+    let ve = 0, me = 0, he = 0;
     const Ee = /* @__PURE__ */ new Set(), Ne = [];
-    Object.entries(h.suggestedEntries).forEach(([ve, te]) => {
+    Object.entries(h.suggestedEntries).forEach(([ge, te]) => {
       te.forEach((ue) => {
-        const ye = f.includes(ve) ? ve : f[0] ?? "";
+        const ye = f.includes(ge) ? ge : f[0] ?? "";
         ye && Ne.push({ worldName: ye, entry: ue });
       });
     });
     const Be = structuredClone(v);
-    for (const { worldName: ve, entry: te } of Ne)
+    for (const { worldName: ge, entry: te } of Ne)
       try {
-        Be[ve] || (Be[ve] = []);
-        const ue = Be[ve].find((ut) => ut.uid === te.uid), ye = !!ue;
+        Be[ge] || (Be[ge] = []);
+        const ue = Be[ge].find((ut) => ut.uid === te.uid), ye = !!ue;
         let _e, Oe = "unchanged";
         if (ye) {
           const ut = (te.content || "") !== (ue.content || ""), Ot = (te.comment || "") !== (ue.comment || ""), et = (te.key || []).slice().sort().join(",") !== (ue.key || []).slice().sort().join(",");
           (ut || Ot || et) && (_e = ue, Oe = "updated");
         } else {
-          const ut = { entries: Object.fromEntries(Be[ve].map((et) => [et.uid, et])) }, Ot = ml(ve, ut);
+          const ut = { entries: Object.fromEntries(Be[ge].map((et) => [et.uid, et])) }, Ot = ml(ge, ut);
           if (!Ot) throw new Error("Failed to create new World Info entry.");
-          _e = Ot, Be[ve].push(_e), Oe = "added";
+          _e = Ot, Be[ge].push(_e), Oe = "added";
         }
-        Oe !== "unchanged" && _e && (Object.assign(_e, { key: te.key, content: te.content, comment: te.comment }), Ee.add(ve)), Oe === "added" ? ge++ : Oe === "updated" ? me++ : he++;
+        Oe !== "unchanged" && _e && (Object.assign(_e, { key: te.key, content: te.content, comment: te.comment }), Ee.add(ge)), Oe === "added" ? ve++ : Oe === "updated" ? me++ : he++;
       } catch (ue) {
         console.error(ue), Te("error", u.entryProcessFailed(te.comment));
       }
     E(Be);
-    for (const ve of Ee)
+    for (const ge of Ee)
       try {
-        const te = { entries: Object.fromEntries(Be[ve].map((ue) => [ue.uid, ue])) };
-        await Hn.saveWorldInfo(ve, te), Hn.reloadWorldInfoEditor(ve, !0);
+        const te = { entries: Object.fromEntries(Be[ge].map((ue) => [ue.uid, ue])) };
+        await Hn.saveWorldInfo(ge, te), Hn.reloadWorldInfoEditor(ge, !0);
       } catch {
-        Te("error", u.worldSaveFailed(ve));
+        Te("error", u.worldSaveFailed(ge));
       }
-    m((ve) => ({ ...ve, suggestedEntries: {} })), Te("success", u.addAllResult(ge, me, he)), j(!1);
+    m((ge) => ({ ...ge, suggestedEntries: {} })), Te("success", u.addAllResult(ve, me, he)), j(!1);
   }, I = async () => {
     await Hn.Popup.show.confirm(u.resetConfirmTitle, u.resetConfirmMessage) && (m((de) => ({
       ...de,
@@ -26928,23 +26940,23 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
       selectedWorldNames: al() ? [...f] : [],
       selectedEntryUids: {}
     })), Te("success", u.resetSuccess));
-  }, $ = (F, de, ge) => {
+  }, $ = (F, de, ve) => {
     m((me) => {
       const he = { ...me };
-      ge && (he.blackListedEntries = [...he.blackListedEntries, `${de} (${F.comment})`]);
+      ve && (he.blackListedEntries = [...he.blackListedEntries, `${de} (${F.comment})`]);
       const Ee = { ...he.suggestedEntries };
       return Ee[de] && (Ee[de] = Ee[de].filter(
         (Ne) => !(Ne.uid === F.uid && Ne.comment === F.comment)
       )), he.suggestedEntries = Ee, he;
     });
-  }, ne = (F, de, ge, me) => {
+  }, ne = (F, de, ve, me) => {
     m((he) => {
       const Ee = { ...he.suggestedEntries };
       if (Ee[F]) {
         const Be = Ee[F].findIndex(
-          (ve) => ve.uid === de.uid && ve.comment === de.comment
+          (ge) => ge.uid === de.uid && ge.comment === de.comment
         );
-        Be !== -1 && (Ee[F][Be] = ge);
+        Be !== -1 && (Ee[F][Be] = ve);
       }
       const Ne = { ...he, suggestedEntries: Ee };
       return me && (Ne.regexIds = me), Ne;
@@ -26952,18 +26964,18 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
   }, ce = ae.useCallback(
     (F) => {
       m((de) => {
-        const ge = structuredClone(de.suggestedEntries);
+        const ve = structuredClone(de.suggestedEntries);
         let me = 0;
         for (const [he, Ee] of Object.entries(F))
           if (v[he]) {
-            ge[he] || (ge[he] = []);
+            ve[he] || (ve[he] = []);
             for (const Ne of Ee) {
-              if (ge[he].some((te) => te.uid === Ne)) continue;
-              const ve = v[he].find((te) => te.uid === Ne);
-              ve && (ge[he].push(structuredClone(ve)), me++);
+              if (ve[he].some((te) => te.uid === Ne)) continue;
+              const ge = v[he].find((te) => te.uid === Ne);
+              ge && (ve[he].push(structuredClone(ge)), me++);
             }
           }
-        return me > 0 && Te("success", u.importSuccess(me)), { ...de, suggestedEntries: ge };
+        return me > 0 && Te("success", u.importSuccess(me)), { ...de, suggestedEntries: ve };
       });
     },
     [v, u]
@@ -26974,16 +26986,16 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
     }), F;
   }, [h.selectedWorldNames, v]), Ce = ae.useMemo(() => {
     const F = JSON.parse(JSON.stringify(fe)), de = /* @__PURE__ */ new Map();
-    return Object.entries(h.suggestedEntries).forEach(([ge, me]) => {
+    return Object.entries(h.suggestedEntries).forEach(([ve, me]) => {
       me.forEach((he) => {
-        he.uid && de.set(he.uid, { worldName: ge, entry: he });
+        he.uid && de.set(he.uid, { worldName: ve, entry: he });
       });
-    }), Object.entries(F).forEach(([, ge]) => {
-      ge.forEach((me, he) => {
-        me.uid && de.has(me.uid) && (ge[he] = de.get(me.uid).entry, de.delete(me.uid));
+    }), Object.entries(F).forEach(([, ve]) => {
+      ve.forEach((me, he) => {
+        me.uid && de.has(me.uid) && (ve[he] = de.get(me.uid).entry, de.delete(me.uid));
       });
-    }), de.forEach(({ worldName: ge, entry: me }) => {
-      F[ge] || (F[ge] = []), F[ge].some((he) => he.uid === me.uid) || F[ge].push(me);
+    }), de.forEach(({ worldName: ve, entry: me }) => {
+      F[ve] || (F[ve] = []), F[ve].some((he) => he.uid === me.uid) || F[ve].push(me);
     }), F;
   }, [fe, h.suggestedEntries]), ee = (F) => {
     const de = /* @__PURE__ */ new Map();
@@ -26992,20 +27004,20 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
         de.set(`${me}::${Ee.uid}`, Ee);
       });
     });
-    const ge = {};
+    const ve = {};
     Object.entries(F).forEach(([me, he]) => {
       he.forEach((Ee) => {
         const Ne = `${me}::${Ee.uid}`, Be = de.get(Ne);
-        let ve = !1;
+        let ge = !1;
         if (!Be)
-          ve = !0;
+          ge = !0;
         else {
           const te = (Ee.content || "") !== (Be.content || ""), ue = (Ee.comment || "") !== (Be.comment || ""), ye = (Ee.key || []).slice().sort().join(",") !== (Be.key || []).slice().sort().join(",");
-          (te || ue || ye) && (ve = !0);
+          (te || ue || ye) && (ge = !0);
         }
-        ve && (ge[me] || (ge[me] = []), ge[me].push(Ee));
+        ge && (ve[me] || (ve[me] = []), ve[me].push(Ee));
       });
-    }), m((me) => ({ ...me, suggestedEntries: ge })), Te("success", u.globalReviseApplied);
+    }), m((me) => ({ ...me, suggestedEntries: ve })), Te("success", u.globalReviseApplied);
   }, we = ae.useMemo(
     () => Object.keys(r.promptPresets).map((F) => ({ value: F, label: F })),
     [r.promptPresets]
@@ -27019,7 +27031,7 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
   if (p)
     return /* @__PURE__ */ N.jsx("div", { children: a.loadingText });
   const Ge = Object.entries(h.suggestedEntries).flatMap(
-    ([F, de]) => de.map((ge) => ({ worldName: F, entry: ge }))
+    ([F, de]) => de.map((ve) => ({ worldName: F, entry: ve }))
   );
   return /* @__PURE__ */ N.jsxs(N.Fragment, { children: [
     /* @__PURE__ */ N.jsxs("div", { id: "worldInfoRecommenderPopup", children: [
@@ -27203,8 +27215,8 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
                     value: h.selectedWorldNames,
                     onChange: (F) => {
                       m((de) => {
-                        const ge = { ...de.selectedEntryUids };
-                        return de.selectedWorldNames.filter((he) => !F.includes(he)).forEach((he) => delete ge[he]), { ...de, selectedWorldNames: F, selectedEntryUids: ge };
+                        const ve = { ...de.selectedEntryUids };
+                        return de.selectedWorldNames.filter((he) => !F.includes(he)).forEach((he) => delete ve[he]), { ...de, selectedWorldNames: F, selectedEntryUids: ve };
                       });
                     },
                     multiple: !0,
@@ -27300,7 +27312,7 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
                 onChange: (F) => Z("promptPreset", F ?? "default"),
                 onItemsChange: (F) => {
                   const de = F.reduce(
-                    (ge, me) => (ge[me.value] = r.promptPresets[me.value] ?? { content: "" }, ge),
+                    (ve, me) => (ve[me.value] = r.promptPresets[me.value] ?? { content: "" }, ve),
                     {}
                   );
                   Z("promptPresets", de);
@@ -27397,7 +27409,7 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
                   initialWorldName: F,
                   entry: de,
                   allWorldNames: f,
-                  existingEntry: v[F]?.find((ge) => ge.uid === de.uid),
+                  existingEntry: v[F]?.find((ve) => ve.uid === de.uid),
                   sessionRegexIds: h.regexIds,
                   onAdd: K,
                   onRemove: $,
@@ -27430,7 +27442,7 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
         onComplete: (F) => {
           if (F && M.current) {
             const de = M.current.getSelection();
-            m((ge) => ({ ...ge, selectedEntryUids: de }));
+            m((ve) => ({ ...ve, selectedEntryUids: de }));
           }
           P(!1);
         },

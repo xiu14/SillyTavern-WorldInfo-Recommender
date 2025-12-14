@@ -364,86 +364,97 @@ export const MainPopup: FC = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      setIsLoading(true);
-      setEntriesGroupByWorldName({});
-      setAllWorldNames([]);
-      setGroupMembers([]);
+      try {
+        setIsLoading(true);
+        setEntriesGroupByWorldName({});
+        setAllWorldNames([]);
+        setGroupMembers([]);
 
-      const avatar = getAvatar();
-      const key = `worldInfoRecommend_${avatarKey}`;
+        const avatar = getAvatar();
+        const key = `worldInfoRecommend_${avatarKey}`;
 
-      const savedSession: Partial<Session> = JSON.parse(localStorage.getItem(key) ?? '{}');
-      const initialSession: Session = {
-        suggestedEntries: savedSession.suggestedEntries ?? {},
-        blackListedEntries: savedSession.blackListedEntries ?? [],
-        selectedWorldNames: savedSession.selectedWorldNames ?? [],
-        selectedEntryUids: savedSession.selectedEntryUids ?? {},
-        regexIds: savedSession.regexIds ?? {},
-      };
+        let savedSession: Partial<Session> = {};
+        try {
+          savedSession = JSON.parse(localStorage.getItem(key) ?? '{}');
+        } catch (e) {
+          console.error('Failed to parse saved session:', e);
+        }
 
-      let loadedEntries: Record<string, WIEntry[]> = {};
-      if (avatar) {
-        if (selected_group) {
-          const groupWorldInfo = await getWorldInfos(['chat', 'persona', 'global'], true);
-          if (groupWorldInfo) loadedEntries = groupWorldInfo;
+        const initialSession: Session = {
+          suggestedEntries: savedSession.suggestedEntries ?? {},
+          blackListedEntries: savedSession.blackListedEntries ?? [],
+          selectedWorldNames: savedSession.selectedWorldNames ?? [],
+          selectedEntryUids: savedSession.selectedEntryUids ?? {},
+          regexIds: savedSession.regexIds ?? {},
+        };
 
-          const group = groups.find((g: any) => g.id === selected_group);
-          if (group) {
-            for (const member of group.members) {
-              const index = globalContext.characters.findIndex((c: Character) => c.avatar === member);
-              if (index !== -1) {
-                const worldInfo = await getWorldInfos(['character'], true, index);
-                if (worldInfo) loadedEntries = { ...loadedEntries, ...worldInfo };
+        let loadedEntries: Record<string, WIEntry[]> = {};
+        if (avatar) {
+          if (selected_group) {
+            const groupWorldInfo = await getWorldInfos(['chat', 'persona', 'global'], true);
+            if (groupWorldInfo) loadedEntries = groupWorldInfo;
+
+            const group = groups.find((g: any) => g.id === selected_group);
+            if (group) {
+              for (const member of group.members) {
+                const index = globalContext.characters.findIndex((c: Character) => c.avatar === member);
+                if (index !== -1) {
+                  const worldInfo = await getWorldInfos(['character'], true, index);
+                  if (worldInfo) loadedEntries = { ...loadedEntries, ...worldInfo };
+                }
+              }
+            }
+          } else {
+            loadedEntries = await getWorldInfos(['all'], true, this_chid);
+          }
+        } else {
+          for (const worldName of world_names) {
+            const worldInfo = await globalContext.loadWorldInfo(worldName);
+            if (worldInfo) loadedEntries[worldName] = Object.values(worldInfo.entries);
+          }
+        }
+        setEntriesGroupByWorldName(loadedEntries);
+        const loadedWorldNames = Object.keys(loadedEntries);
+        setAllWorldNames(loadedWorldNames);
+
+        if (initialSession.selectedWorldNames.length === 0 && avatarKey !== '_global') {
+          initialSession.selectedWorldNames = [...loadedWorldNames];
+        } else {
+          initialSession.selectedWorldNames = initialSession.selectedWorldNames.filter((name) =>
+            loadedWorldNames.includes(name),
+          );
+        }
+
+        const validEntryUids: Record<string, number[]> = {};
+        if (initialSession.selectedEntryUids) {
+          for (const [worldName, uids] of Object.entries(initialSession.selectedEntryUids)) {
+            if (loadedEntries[worldName]) {
+              const worldEntryUids = new Set(loadedEntries[worldName].map((e) => e.uid));
+              const validUids = uids.filter((uid) => worldEntryUids.has(uid));
+              if (validUids.length > 0) {
+                validEntryUids[worldName] = validUids;
               }
             }
           }
-        } else {
-          loadedEntries = await getWorldInfos(['all'], true, this_chid);
         }
-      } else {
-        for (const worldName of world_names) {
-          const worldInfo = await globalContext.loadWorldInfo(worldName);
-          if (worldInfo) loadedEntries[worldName] = Object.values(worldInfo.entries);
-        }
-      }
-      setEntriesGroupByWorldName(loadedEntries);
-      const loadedWorldNames = Object.keys(loadedEntries);
-      setAllWorldNames(loadedWorldNames);
+        initialSession.selectedEntryUids = validEntryUids;
+        setSession(initialSession);
 
-      if (initialSession.selectedWorldNames.length === 0 && avatarKey !== '_global') {
-        initialSession.selectedWorldNames = [...loadedWorldNames];
-      } else {
-        initialSession.selectedWorldNames = initialSession.selectedWorldNames.filter((name) =>
-          loadedWorldNames.includes(name),
-        );
-      }
-
-      const validEntryUids: Record<string, number[]> = {};
-      if (initialSession.selectedEntryUids) {
-        for (const [worldName, uids] of Object.entries(initialSession.selectedEntryUids)) {
-          if (loadedEntries[worldName]) {
-            const worldEntryUids = new Set(loadedEntries[worldName].map((e) => e.uid));
-            const validUids = uids.filter((uid) => worldEntryUids.has(uid));
-            if (validUids.length > 0) {
-              validEntryUids[worldName] = validUids;
-            }
+        if (selected_group) {
+          const group = groups.find((g: any) => g.id === selected_group);
+          if (group?.generation_mode === 0) {
+            const members = group.members
+              .map((memberAvatar: string) => globalContext.characters.find((c: Character) => c.avatar === memberAvatar))
+              .filter((c?: Character): c is Character => !!c);
+            setGroupMembers(members);
           }
         }
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        st_echo('error', 'Failed to load World Info Recommender data. Check console for details.');
+      } finally {
+        setIsLoading(false);
       }
-      initialSession.selectedEntryUids = validEntryUids;
-      setSession(initialSession);
-
-      if (selected_group) {
-        const group = groups.find((g: any) => g.id === selected_group);
-        if (group?.generation_mode === 0) {
-          const members = group.members
-            .map((memberAvatar: string) => globalContext.characters.find((c: Character) => c.avatar === memberAvatar))
-            .filter((c?: Character): c is Character => !!c);
-          setGroupMembers(members);
-        }
-      }
-
-      setIsLoading(false);
     };
 
     loadData();
