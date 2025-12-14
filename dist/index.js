@@ -26005,7 +26005,7 @@ async function PA(n, r, s, a, u, c, h) {
     v.entryToRevise = {
       worldName: s,
       name: b.comment,
-      triggers: b.key.join(", "),
+      triggers: (b.key || []).join(", "),
       content: b.content
     };
   }
@@ -26258,8 +26258,8 @@ const rl = SillyTavern.getContext(), t0 = "worldInfoRecommender_reviseSessions",
   contextToSend: E
 }) => {
   const _ = st.getSettings()?.language ?? a0, p = i0[_] ?? i0[a0], [C, T] = ae.useState(() => s.find((ce) => ce === n) ?? s[0] ?? ""), [j, k] = ae.useState(!1), [P, l] = ae.useState(!1), [S, w] = ae.useState(!1), [A, O] = ae.useState(!1), [L, M] = ae.useState(!1), [z, H] = ae.useState(!1), [Z, G] = ae.useState(""), Q = ae.useRef(null), R = ae.useMemo(
-    () => !!g[C]?.find((ne) => ne.uid === r.uid && ne.comment === r.comment),
-    [C, r.uid, r.comment, g]
+    () => !!g[C]?.find((ne) => ne.uid === r.uid),
+    [C, r.uid, g]
   ), B = P || S, K = async () => {
     k(!0), await c(r, n, C), k(!1);
   }, ie = async () => {

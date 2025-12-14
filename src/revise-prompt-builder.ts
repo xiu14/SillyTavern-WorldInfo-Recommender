@@ -53,7 +53,7 @@ export async function buildInitialReviseMessages(
     templateData['entryToRevise'] = {
       worldName: worldName,
       name: entryToRevise.comment,
-      triggers: entryToRevise.key.join(', '),
+      triggers: (entryToRevise.key || []).join(', '),
       content: entryToRevise.content,
     };
   }
