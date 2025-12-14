@@ -26768,7 +26768,11 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
         if (!ge) throw new Error("Failed to create new World Info entry.");
         Ne = ge, me[de].push(Ne);
       }
-      if (Object.assign(Ne, { key: F.key, content: F.content, comment: F.comment }), E(me), !ve) {
+      if (Object.assign(Ne, {
+        key: F.key || [],
+        content: F.content || "",
+        comment: F.comment || ""
+      }), E(me), !ve) {
         const Be = { entries: Object.fromEntries(me[de].map((ge) => [ge.uid, ge])) };
         await Hn.saveWorldInfo(de, Be), Hn.reloadWorldInfoEditor(de, !0);
       }
@@ -26919,7 +26923,11 @@ const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
           if (!Ot) throw new Error("Failed to create new World Info entry.");
           _e = Ot, Be[ge].push(_e), Oe = "added";
         }
-        Oe !== "unchanged" && _e && (Object.assign(_e, { key: te.key, content: te.content, comment: te.comment }), Ee.add(ge)), Oe === "added" ? ve++ : Oe === "updated" ? me++ : he++;
+        Oe !== "unchanged" && _e && (Object.assign(_e, {
+          key: te.key || [],
+          content: te.content || "",
+          comment: te.comment || ""
+        }), Ee.add(ge)), Oe === "added" ? ve++ : Oe === "updated" ? me++ : he++;
       } catch (ue) {
         console.error(ue), Te("error", u.entryProcessFailed(te.comment));
       }

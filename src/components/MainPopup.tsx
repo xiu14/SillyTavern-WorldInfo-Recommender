@@ -524,7 +524,11 @@ export const MainPopup: FC = () => {
         worldInfoCopy[selectedWorldName].push(targetEntry);
       }
 
-      Object.assign(targetEntry, { key: entry.key, content: entry.content, comment: entry.comment });
+      Object.assign(targetEntry, {
+        key: entry.key || [],
+        content: entry.content || '',
+        comment: entry.comment || '',
+      });
       setEntriesGroupByWorldName(worldInfoCopy);
 
       if (!skipSave) {
@@ -789,7 +793,11 @@ export const MainPopup: FC = () => {
         }
 
         if (status !== 'unchanged' && targetEntry) {
-          Object.assign(targetEntry, { key: entry.key, content: entry.content, comment: entry.comment });
+          Object.assign(targetEntry, {
+            key: entry.key || [],
+            content: entry.content || '',
+            comment: entry.comment || '',
+          });
           modifiedWorlds.add(worldName);
         }
 
