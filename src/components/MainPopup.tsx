@@ -743,24 +743,61 @@ export const MainPopup: FC = () => {
       });
     });
 
+    // Clone the current state once
+    const worldInfoCopy = structuredClone(entriesGroupByWorldName);
+
     for (const { worldName, entry } of entriesToAdd) {
       try {
-        const status = await addEntry(entry, worldName, true);
+        if (!worldInfoCopy[worldName]) {
+          worldInfoCopy[worldName] = [];
+        }
+
+        const existingEntry = worldInfoCopy[worldName].find((e) => e.uid === entry.uid);
+        const isUpdate = !!existingEntry;
+        let targetEntry: WIEntry | undefined;
+        let status: 'added' | 'updated' | 'unchanged' = 'unchanged';
+
+        if (isUpdate) {
+          const contentChanged = (entry.content || '') !== (existingEntry!.content || '');
+          const commentChanged = (entry.comment || '') !== (existingEntry!.comment || '');
+          const keysChanged =
+            (entry.key || []).slice().sort().join(',') !== (existingEntry!.key || []).slice().sort().join(',');
+
+          if (contentChanged || commentChanged || keysChanged) {
+            targetEntry = existingEntry!;
+            status = 'updated';
+          }
+        } else {
+          const stFormat = { entries: Object.fromEntries(worldInfoCopy[worldName].map((e) => [e.uid, e])) };
+          const newEntry = st_createWorldInfoEntry(worldName, stFormat);
+          if (!newEntry) throw new Error('Failed to create new World Info entry.');
+
+          targetEntry = newEntry;
+          worldInfoCopy[worldName].push(targetEntry);
+          status = 'added';
+        }
+
+        if (status !== 'unchanged' && targetEntry) {
+          Object.assign(targetEntry, { key: entry.key, content: entry.content, comment: entry.comment });
+          modifiedWorlds.add(worldName);
+        }
+
         if (status === 'added') addedCount++;
         else if (status === 'updated') updatedCount++;
         else unchangedCount++;
-
-        if (status !== 'unchanged') {
-          modifiedWorlds.add(worldName);
-        }
       } catch (error) {
+        console.error(error);
         st_echo('error', messages.entryProcessFailed(entry.comment));
       }
     }
 
+    // Update state once
+    setEntriesGroupByWorldName(worldInfoCopy);
+
+    // Save modified worlds
     for (const worldName of modifiedWorlds) {
       try {
-        const finalFormat = { entries: Object.fromEntries(entriesGroupByWorldName[worldName].map((e) => [e.uid, e])) };
+        const finalFormat = { entries: Object.fromEntries(worldInfoCopy[worldName].map((e) => [e.uid, e])) };
         await globalContext.saveWorldInfo(worldName, finalFormat);
         globalContext.reloadWorldInfoEditor(worldName, true);
       } catch (error) {
