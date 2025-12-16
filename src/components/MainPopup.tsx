@@ -874,7 +874,12 @@ export const MainPopup: FC = () => {
         );
 
         if (entryIndex !== -1) {
-          newSuggested[worldName][entryIndex] = updatedEntry;
+          // Ensure UID is preserved to maintain the link to the original entry
+          const finalUpdatedEntry = { ...updatedEntry };
+          if (originalEntry.uid !== undefined) {
+            finalUpdatedEntry.uid = originalEntry.uid;
+          }
+          newSuggested[worldName][entryIndex] = finalUpdatedEntry;
         }
       }
       const newSessionState = { ...prev, suggestedEntries: newSuggested };

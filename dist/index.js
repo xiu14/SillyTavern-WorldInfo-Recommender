@@ -26964,7 +26964,10 @@ const Hn = SillyTavern.getContext(), UA = 3e5, HA = "en", l0 = {
         const Be = Ee[F].findIndex(
           (ge) => ge.uid === de.uid && ge.comment === de.comment
         );
-        Be !== -1 && (Ee[F][Be] = ve);
+        if (Be !== -1) {
+          const ge = { ...ve };
+          de.uid !== void 0 && (ge.uid = de.uid), Ee[F][Be] = ge;
+        }
       }
       const Ne = { ...he, suggestedEntries: Ee };
       return me && (Ne.regexIds = me), Ne;
