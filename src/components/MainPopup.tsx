@@ -146,7 +146,7 @@ type UIMessages = {
   globalReviseApplied: string;
 };
 
-const REQUEST_TIMEOUT_MS = 60000;
+const REQUEST_TIMEOUT_MS = 300000;
 
 const DEFAULT_LANGUAGE: SupportedLanguage = 'en';
 

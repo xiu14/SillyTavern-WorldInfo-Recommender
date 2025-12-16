@@ -26494,7 +26494,7 @@ Sn.helpers.join || Sn.registerHelper("join", function(n, r) {
 Sn.helpers.is_not_empty || Sn.registerHelper("is_not_empty", function(n, r) {
   return n ? Array.isArray(n) ? n.length > 0 ? r.fn(this) : r.inverse(this) : typeof n == "object" && Object.keys(n).length > 0 ? r.fn(this) : typeof n != "object" && !Array.isArray(n) ? r.fn(this) : r.inverse(this) : r.inverse(this);
 });
-const Hn = SillyTavern.getContext(), UA = 6e4, HA = "en", l0 = {
+const Hn = SillyTavern.getContext(), UA = 3e5, HA = "en", l0 = {
   en: "English",
   "zh-CN": "中文"
 }, qA = {
