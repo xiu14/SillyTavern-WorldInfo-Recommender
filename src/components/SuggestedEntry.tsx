@@ -9,7 +9,6 @@ import { EditEntryPopup, EditEntryPopupRef } from './EditEntryPopup.js';
 import { ReviseSessionManager } from './ReviseSessionManager.js';
 import { Session } from '../generate.js';
 import { ExtensionSettings, SupportedLanguage, settingsManager } from '../settings.js';
-import { ReviseState } from '../revise-types.js';
 
 const converter = new showdown.Converter();
 
@@ -153,9 +152,12 @@ export const SuggestedEntry: FC<SuggestedEntryProps> = ({
     setIsRevising(false);
   };
 
-  const handleApplyReviseSession = (newState: ReviseState) => {
-    // In an 'entry' session, newState is a WIEntry.
-    onUpdate(initialWorldName, entry, newState as WIEntry, sessionRegexIds);
+  const handleApplyReviseSession = (args: any) => {
+    // ReviseSessionManager passes an object wrapper for 'entry' type sessions
+    // args: { worldName: string; originalEntry: WIEntry; updatedEntry: WIEntry }
+    // We need to extract the actual updated entry from it.
+    const updatedEntry = args.updatedEntry ? args.updatedEntry : args;
+    onUpdate(initialWorldName, entry, updatedEntry as WIEntry, sessionRegexIds);
   };
 
   return (
