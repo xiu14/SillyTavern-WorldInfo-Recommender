@@ -506,6 +506,15 @@ export const MainPopup: FC = () => {
       let targetEntry: WIEntry;
 
       if (isUpdate) {
+        // Safety check: prevent overwriting with empty content if original had content
+        if ((!entry.content && existingEntry!.content) || (!entry.comment && existingEntry!.comment)) {
+          st_echo(
+            'warning',
+            '新条目内容或名称为空，已取消更新以防止数据丢失。请检查 AI 生成结果或切换到 JSON 模式。',
+          );
+          return 'unchanged';
+        }
+
         // This is an update. Check if anything actually changed.
         const contentChanged = (entry.content || '') !== (existingEntry!.content || '');
         const commentChanged = (entry.comment || '') !== (existingEntry!.comment || '');
